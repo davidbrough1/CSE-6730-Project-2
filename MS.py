@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
     This function take a 2-D or 3-D matrix A, and the number of phases
     H, the microstructure form (isotropic or anisotropic, anisotropic2), 
     the relative  grain size and the distribtion of the phases n, and     
-    returns an eigenmicrostructure DMS, the the dimensions of A with H phases.
+    returns an Eigen microstructure DMS, the the dimensions of A with H phases.
     
     The variable, n, can be thought of as volume fraction distribution
     factor. When n = 1 the volume fraction for all H phases is equal. As 
