@@ -2,6 +2,86 @@ import scipy as sp
 import numpy as np
 from matplotlib.cbook import flatten
 
+# Returning the nodes on the surface
+def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f):
+    NodeintYp = setC
+    NodeYp = []
+    # For n2plus
+    for i in range((intx + 1)*(intz + 1)):
+        NodeYp.append(NodeintYp + i*Layer_ELM_f[1])
+    # For n2neg
+    NodeintYn = setA
+    NodeYn = []
+    for i in range((intx + 1)*(intz + 1)):
+        NodeYn.append(NodeintYn + i*Layer_ELM_f[1])
+    # For n1plus
+    NodeintXp = setE
+    NodeXp = []
+    for i in range((inty + 1)*(intz + 1)):
+        NodeXp.append(NodeintXp + i*Row_ELM_f[1])
+    # For n1neg
+    NodeintXn = setA
+    NodeXn = []
+    for i in range((inty + 1)*(intz + 1)):
+        NodeXn.append(NodeintXn + i*Row_ELM_f[1])
+    # For n3plus
+    step=1
+    NodeZp = []
+    NodeZp2 = []
+    for i in range(inty + 1):
+        Node1 = step + (Layer_ELM_f[1] * intz)
+        NodeZp.append(Node1)
+        for i in range(intx):
+            NodeZp2.append(Node1 + (Row_ELM_f[1]*i))
+        step = step + Block_ELM_f[1]
+    NodeZp.extend(NodeZp2)
+    
+    # For n3neg
+    step=setA
+    NodeZn = []
+    NodeZn2 = []
+    for i in range(inty + 1):
+        Node1 = step
+        NodeZn.append(Node1)
+        for i in range(intx + 1):
+            NodeZn2.append(Node1 + (Row_ELM_f[1]*i))
+        step = step + Block_ELM_f[1]
+    NodeZn.extend(NodeZn2)
+    
+    # For -x Normal
+    NodeXn_pbc = set(NodeXn).difference(set(NodeZn), set(NodeZp), set(NodeYp), set(NodeYn))
+    # For +x Normal
+    NodeXp_pbc = set(NodeXp).difference(set(NodeZn), set(NodeZp), set(NodeYp), set(NodeYn))
+    # For +y Normal
+    NodeYp_pbc = set(NodeYp).difference(set(NodeZn), set(NodeZp), set(NodeXn), set(NodeXp))
+    # For -y Normal
+    NodeYn_pbc = set(NodeYp).difference(set(NodeZn), set(NodeZp), set(NodeXn), set(NodeYn))
+    # For -z Normal
+    NodeZn_pbc = set(NodeZn).difference(set(NodeYn), set(NodeYp), set(NodeXn), set(NodeXp))
+    # For +z Normal   
+    NodeZp_pbc = set(NodeZp).difference(set(NodeYn), set(NodeYp), set(NodeXn), set(NodeXp))
+    
+    # For Edges
+    n3minus_n1minus = set(NodeZn).intersection(set(NodeXn)).difference(set(NodeYp), set(NodeYn))
+    n3minus_n1plus = set(NodeZn).intersection(set(NodeXp)).difference(set(NodeYp), set(NodeYn))
+    n2minus_n3minus = set(NodeYn).intersection(set(NodeZn)).difference(set(NodeXp), set(NodeXn))
+    n2plus_n3minus = set(NodeYp).intersection(set(NodeZn)).difference(set(NodeXp), set(NodeXn))
+    n3plus_n1minus = set(NodeZp).intersection(set(NodeXn)).difference(set(NodeYp), set(NodeYn))
+    n3plus_n1plus = set(NodeZp).intersection(set(NodeXp)).difference(set(NodeYp), set(NodeYn))
+    n2minus_n3plus = set(NodeYn).intersection(set(NodeZp)).difference(set(NodeXp), set(NodeXn))
+    n2plus_n3plus = set(NodeYp).intersection(set(NodeZn)).difference(set(NodeXp), set(NodeXn))
+    n1plus_n2minus = set(NodeXp).intersection(set(NodeYn)).difference(set(NodeZp), set(NodeZn))
+    n1plus_n2plus = set(NodeXp).intersection(set(NodeYp)).difference(set(NodeZp), set(NodeZn))
+    n1minus_n2minus = set(NodeXn).intersection(set(NodeYn)).difference(set(NodeZp), set(NodeZn))
+    n1minus_n2plus = set(NodeXn).intersection(set(NodeYp)).difference(set(NodeZp), set(NodeZn))
+    
+    print n3minus_n1minus
+    
+    return (NodeXn_pbc, NodeXp_pbc, NodeYp_pbc, NodeYn_pbc, NodeZp_pbc, NodeZn_pbc,
+            n3minus_n1minus, n3minus_n1plus, n2minus_n3minus, n2plus_n3minus,
+            n3plus_n1minus, n3plus_n1plus, n2minus_n3plus, n2plus_n3plus,
+            n1plus_n2minus, n1plus_n2plus, n1minus_n2minus, n1minus_n2plus)
+
 def generateAbaqusIn(inputFileName, MicroSF):
     f = open(inputFileName, 'w')
     nl = "\n"
@@ -11,13 +91,13 @@ def generateAbaqusIn(inputFileName, MicroSF):
                   
     f.writelines(headerLines)
     
-    Length_X = 2
-    Length_Y = 2
-    Length_Z = 2
+    Length_X = 21
+    Length_Y = 21
+    Length_Z = 21
     
-    intx = 10
-    inty = 10
-    intz = 10
+    intx = 21
+    inty = 21
+    intz = 21
     
     Fine_int = 1
     
@@ -127,8 +207,8 @@ def generateAbaqusIn(inputFileName, MicroSF):
     #                  z increment in element number
 
     Row_ELM_f=[inty, Fine_int, Fine_int]
-    Layer_ELM_f=[intz, setAB_f, (inty*Fine_int)*Fine_int]
-    Block_ELM_f=[intx, setABCDEFGH_f, (inty*Fine_int)*(intz*Fine_int)*Fine_int]
+    Layer_ELM_f=[intz, setAB_f[1], (inty*Fine_int)*Fine_int]
+    Block_ELM_f=[intx, setABCDEFGH_f[1], (inty*Fine_int)*(intz*Fine_int)*Fine_int]
     
     ELGEN=[ElementNo1, Row_ELM_f, Layer_ELM_f, Block_ELM_f]
     
@@ -138,4 +218,9 @@ def generateAbaqusIn(inputFileName, MicroSF):
     
     Total_Elements=intx*inty*intz
     
+    (NodeXn_pbc, NodeXp_pbc, NodeYp_pbc, NodeYn_pbc, NodeZp_pbc, NodeZn_pbc,
+            n3minus_n1minus, n3minus_n1plus, n2minus_n3minus, n2plus_n3minus,
+            n3plus_n1minus, n3plus_n1plus, n2minus_n3plus, n2plus_n3plus,
+            n1plus_n2minus, n1plus_n2plus, n1minus_n2minus, n1minus_n2plus) = \
+            intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f)
     
