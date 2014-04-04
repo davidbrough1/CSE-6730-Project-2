@@ -2,6 +2,18 @@ import scipy as sp
 import numpy as np
 from matplotlib.cbook import flatten
 
+def printNodeSet(f, nodeSet, nodeSetName):
+    nl = "\n"
+    f.writelines(('*****************************************************', nl))
+    f.writelines(('*NSET, NSET={}'.format(nodeSetName),nl))
+    i = 0
+    for x in sorted(nodeSet):
+        f.write('{},   '.format(x))
+        i += 1
+        if (i % 16 == 0):
+            f.write('\n')
+    f.write('\n')
+            
 # Returning the nodes on the surface
 def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f):
     NodeintYp = setC
@@ -31,7 +43,7 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
     for i in range(inty + 1):
         Node1 = step + (Layer_ELM_f[1] * intz)
         NodeZp.append(Node1)
-        for i in range(intx):
+        for i in range(intx + 1):
             NodeZp2.append(Node1 + (Row_ELM_f[1]*i))
         step = step + Block_ELM_f[1]
     NodeZp.extend(NodeZp2)
@@ -75,8 +87,6 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
     n1minus_n2minus = set(NodeXn).intersection(set(NodeYn)).difference(set(NodeZp), set(NodeZn))
     n1minus_n2plus = set(NodeXn).intersection(set(NodeYp)).difference(set(NodeZp), set(NodeZn))
     
-    print n3minus_n1minus
-    
     return (NodeXn_pbc, NodeXp_pbc, NodeYp_pbc, NodeYn_pbc, NodeZp_pbc, NodeZn_pbc,
             n3minus_n1minus, n3minus_n1plus, n2minus_n3minus, n2plus_n3minus,
             n3plus_n1minus, n3plus_n1plus, n2minus_n3plus, n2plus_n3plus,
@@ -91,9 +101,9 @@ def generateAbaqusIn(inputFileName, MicroSF):
                   
     f.writelines(headerLines)
     
-    Length_X = 21
-    Length_Y = 21
-    Length_Z = 21
+    Length_X = 20
+    Length_Y = 20
+    Length_Z = 20
     
     intx = 21
     inty = 21
@@ -124,7 +134,7 @@ def generateAbaqusIn(inputFileName, MicroSF):
 
     modelCoordinates = [[setA, x0, y0, z0], [setB, x0, y0, z0 + Length_Z],
                         [setC, x0, y0 + Length_Y, z0],[setD, x0, y0 + Length_Y, z0 + Length_Z],
-                        [setE, x0 +Length_X, y0, z0], [setF, x0 + Length_X, y0, z0],
+                        [setE, x0 +Length_X, y0, z0], [setF, x0 + Length_X, y0, z0 + Length_Z],
                         [setG, x0 + Length_X, y0 + Length_Y, z0],[setH, x0 + Length_X, y0 + Length_Y, z0 + Length_Z]]   
     vertexLineFormat = '{}, {}, {}, {} \n'
     for i in range(len(modelCoordinates)):
@@ -223,4 +233,181 @@ def generateAbaqusIn(inputFileName, MicroSF):
             n3plus_n1minus, n3plus_n1plus, n2minus_n3plus, n2plus_n3plus,
             n1plus_n2minus, n1plus_n2plus, n1minus_n2minus, n1minus_n2plus) = \
             intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f)
+
+    printNodeSet(f, NodeXp_pbc, 'n1plus')    
+    printNodeSet(f, NodeXn_pbc, 'n1minus')
+    printNodeSet(f, NodeYn_pbc, 'n2minus')
+    printNodeSet(f, NodeYp_pbc, 'n2plus')
+    printNodeSet(f, NodeYn_pbc, 'n2minus')
+    printNodeSet(f, NodeZn_pbc, 'n3minus')
+    printNodeSet(f, NodeZp_pbc, 'n3plus')
+    
+    printNodeSet(f, n3minus_n1minus, 'n3minus_n1minus')
+    printNodeSet(f, n3minus_n1plus, 'n3minus_n1plus')
+    printNodeSet(f, n2minus_n3minus, 'n2minus_n3minus')
+    printNodeSet(f, n2plus_n3minus, 'n2plus_n3minus')
+    printNodeSet(f, n3plus_n1minus, 'n3plus_n1minus')
+    printNodeSet(f, n3plus_n1plus, 'n3plus_n1plus')
+    printNodeSet(f, n2minus_n3plus, 'n2minus_n3plus')
+    printNodeSet(f, n2plus_n3plus, 'n2plus_n3plus')
+    printNodeSet(f, n1plus_n2minus, 'n1plus_n2minus')
+    printNodeSet(f, n1plus_n2plus, 'n1plus_n2plus')
+    printNodeSet(f, n1minus_n2minus, 'n1minus_n2minus')
+    printNodeSet(f, n1minus_n2plus, 'n1minus_n2plus')
+    
+    # Implement Boundary conditions
+    # Equation
+    f.writelines(('*****************************************************', nl))
+    f.writelines(('** Implement Periodic Boundary Conditions', nl))
+    f.writelines(('*Equation', nl))
+    
+    f.writelines(('3', nl))
+    f.writelines(('n1plus, 1, 1, n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus, 2, 1, n1minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus, 3, 1, n1minus, 3, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus, 1, 1, n2minus, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus, 2, 1, n2minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus, 3, 1, n2minus, 3, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus, 1, 1, n3minus, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus, 2, 1, n3minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus, 3, 1, n3minus, 3, -1', nl))
+    
+    f.writelines(('**', nl))
+    f.writelines(('3', nl))
+    f.writelines(('n1plus_n2plus, 1, 1, n1minus_n2plus, 1, -1, H, 1, -1', nl))
+    f.writelines(('3', nl))
+    f.writelines(('n1plus_n2minus, 1, 1, n1minus_n2minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1minus_n2plus, 1, 1, n1minus_n2minus, 1, -1', nl))
+    
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus_n2plus, 2, 1, n1minus_n2plus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus_n2minus, 2, 1, n1minus_n2minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1minus_n2plus, 2, 1, n1minus_n2minus, 2, -1', nl)) 
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus_n2plus, 3, 1, n1minus_n2plus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1plus_n2minus, 3, 1, n1minus_n2minus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n1minus_n2plus, 3, 1, n1minus_n2minus, 3, -1', nl)) 
+    f.writelines(('**', nl))
+    f.writelines(('**', nl))
+    f.writelines(('3', nl))
+    # maybe do formatting to fill in value for H
+    f.writelines(('n3plus_n1plus, 1, 1, n3plus_n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('3', nl))
+    f.writelines(('n3minus_n1plus, 1, 1, n3minus_n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus_n1minus, 1, 1, n3minus_n1minus, 1, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus_n1plus, 2, 1, n3plus_n1minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3minus_n1plus, 2, 1, n3minus_n1minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus_n1minus, 2, 1, n3minus_n1minus, 2, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus_n1plus, 3, 1, n3plus_n1minus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3minus_n1plus, 3, 1, n3minus_n1minus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n3plus_n1minus, 3, 1, n3minus_n1minus, 3, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3plus, 1, 1, n2minus_n3plus, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3minus, 1, 1, n2minus_n3minus, 1, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2minus_n3plus, 1, 1, n2minus_n3minus, 1, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3plus, 2, 1, n2minus_n3plus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3minus, 2, 1, n2minus_n3minus, 2, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2minus_n3plus, 2, 1, n2minus_n3minus, 2, -1', nl))
+    f.writelines(('**', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3plus, 3, 1, n2minus_n3plus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2plus_n3minus, 3, 1, n2minus_n3minus, 3, -1', nl))
+    f.writelines(('2', nl))
+    f.writelines(('n2minus_n3plus, 3, 1, n2minus_n3minus, 3, -1', nl))
+
+    f.writelines(('**** ----------------------------------------------------------------- ', nl))
+    f.writelines(('** MATERIALS', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*Solid Section, elset=elset1, material=material-1', nl))
+    f.writelines(('1.,', nl))
+    f.writelines(('*Material, name=material-1', nl))
+    f.writelines(('*Elastic,type=isotropic', nl))
+    f.writelines(('120, 0.3', nl))
+    f.writelines(('** Solid (element 2 = elset2)', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*Solid Section, elset=elset2, material=material-2', nl))
+    f.writelines(('1.,', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*Material, name=material-2', nl))
+    f.writelines(('*Elastic,type=isotropic', nl))
+    f.writelines(('80, 0.3', nl))
+    f.writelines(('** ----------------------------------------------------------------', nl))
+    f.writelines(('**     ', nl))
+    
+    f.writelines(('** ----------------------------------------------------------------', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('** STEP: Step-1', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('*Step, name=Step-1', nl))
+    f.writelines(('*Static', nl))
+    f.writelines(('1., 1., 1e-05, 1.', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('** BOUNDARY CONDITIONS', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('** Name: BC-1 Type: Displacement/Rotation', nl))
+    f.writelines(('*Boundary', nl))
+    f.writelines(('**', nl))
+    f.writelines(('A,1,3,0', nl))
+    f.writelines(('B,1,3,0', nl))
+    f.writelines(('C,1,3,0', nl))
+    f.writelines(('D,1,3,0', nl))
+    f.writelines(('E,1,1,0.02', nl))
+    f.writelines(('F,1,1,0.02', nl))
+    f.writelines(('G,1,1,0.02', nl))
+    f.writelines(('H,1,1,0.02', nl))
+    f.writelines(('E,2,3,0', nl))
+    f.writelines(('F,2,3,0', nl))
+    f.writelines(('G,2,3,0', nl))
+    f.writelines(('H,2,3,0', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('** OUTPUT REQUESTS', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*output, field, frequency=0', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*output, history, frequency=0', nl))
+    f.writelines(('** ', nl))
+    f.writelines(('*el print, summary=no, totals=yes', nl))
+    f.writelines(('E', nl))
+    f.writelines(('**', nl))
+    f.writelines(('*End Step', nl))
+    
+    
+    
+
+
     
