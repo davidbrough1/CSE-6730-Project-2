@@ -13,8 +13,24 @@ def printNodeSet(f, nodeSet, nodeSetName):
         if (i % 16 == 0):
             f.write('\n')
     f.write('\n')
-            
-# Returning the nodes on the surface
+    
+def printEleSet(f, eleSet, eleSetName):
+    nl = "\n"
+    f.writelines(('*****************************************************', nl))
+    f.writelines(('*ELSET, ELSET={}'.format(eleSetName),nl))
+    i = 0
+    for x in sorted(eleSet):
+        f.write('{},   '.format(x))
+        i += 1
+        if (i % 16 == 0):
+            f.write('\n')
+    f.write('\n')
+
+# Returns the node number for the given indices
+def getEleNumber(i, j, k, intx, inty, intz, Fine_int):
+    return (j) + (i)*inty*Fine_int*intz*Fine_int + (k)*inty*Fine_int + 1
+    
+# Returning the sets of nodes on the two faces and the edge
 def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f):
     NodeintYp = setC
     NodeYp = []
@@ -92,7 +108,8 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
             n3plus_n1minus, n3plus_n1plus, n2minus_n3plus, n2plus_n3plus,
             n1plus_n2minus, n1plus_n2plus, n1minus_n2minus, n1minus_n2plus)
 
-def generateAbaqusIn(inputFileName, MicroSF):
+# Generates an abaqus input for the given microstructure. Only works for microstructures with two phases
+def generateAbaqusInp(inputFileName, ms):
     f = open(inputFileName, 'w')
     nl = "\n"
     headerLines = '*Preprint, echo=NO, model=No, history=NO, contact=NO', nl, '*Heading', nl
@@ -101,17 +118,17 @@ def generateAbaqusIn(inputFileName, MicroSF):
                   
     f.writelines(headerLines)
     
-    Length_X = 20
-    Length_Y = 20
-    Length_Z = 20
+    shape = ms.shape
+    Length_X = shape[0] - 1
+    Length_Y = shape[1] - 1
+    Length_Z = shape[2] - 1
     
-    intx = 21
-    inty = 21
-    intz = 21
+    intx = shape[0]
+    inty = shape[1]
+    intz = shape[2]
     
     Fine_int = 1
     
-    blockNo = 1
     NodeNo1 = 1
     ElementNo1 = 1
     x0 = 0
@@ -147,7 +164,7 @@ def generateAbaqusIn(inputFileName, MicroSF):
         f.writelines(nSetFormat.format(nSetNames[i], modelCoordinates[i][0]))
     
     # Generate nodes for main region
-    # Below: [x y] = x for interval & y for numbering
+    # Below: [x, y] = x for interval & y for numbering
     nFillDict = {}
     setAB_f = [intz, (inty*Fine_int + 1)*Fine_int]
     nFillDict['AB'] = setAB_f
@@ -350,6 +367,20 @@ def generateAbaqusIn(inputFileName, MicroSF):
     f.writelines(('2', nl))
     f.writelines(('n2minus_n3plus, 3, 1, n2minus_n3minus, 3, -1', nl))
 
+    elset1 = []
+    elset2 = []
+    for i in range(intx):
+        for j in range(inty):
+            for k in range(intz):
+                phase = ms[i][j][k]
+                if (phase == 1):
+                    elset1.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+                elif (phase == 2):
+                    elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+    
+    printNodeSet(f, elset1, 'elset1')
+    printNodeSet(f, elset2, 'elset2')
+    
     f.writelines(('**** ----------------------------------------------------------------- ', nl))
     f.writelines(('** MATERIALS', nl))
     f.writelines(('**', nl))
@@ -405,7 +436,6 @@ def generateAbaqusIn(inputFileName, MicroSF):
     f.writelines(('E', nl))
     f.writelines(('**', nl))
     f.writelines(('*End Step', nl))
-    
     
     
 
