@@ -1,0 +1,125 @@
+*Preprint, echo=NO, model=No, history=NO, contact=NO
+*Heading
+***********************************************
+*node
+999999,1,1,15.5
+*NSET, NSET=Refpoint
+999999
+***********************************************
+*Surface, Type=REVOLUTION, Name=Indentertip
+1,1,15.5,1,1,16.5
+START, 13.5 , 0
+CIRCL, 0 , -13.5 , 0 , 0
+*Rigid Body, Ref Node = Refpoint , Analytical Surface = Indentertip
+***********************************************
+*node
+1,0,0,0
+111,0,0,2
+11,0,2,0
+121,0,2,2
+1211,2,0,0
+1321,2,0,2
+1221,2,2,0
+1331,2,2,2
+***********************************************
+*NSET, NSET=A1
+1
+*NSET, NSET=B1
+111
+*NSET, NSET=C1
+11
+*NSET, NSET=D1
+121
+*NSET, NSET=E1
+1211
+*NSET, NSET=F1
+1321
+*NSET, NSET=G1
+1221
+*NSET, NSET=H1
+1331
+***********************************************
+*Nfill, Nset=AB1
+A1, B1, 10, 11
+*Nfill, Nset=CD1
+C1, D1, 10, 11
+*Nfill, Nset=ABCD1
+AB1, CD1, 10, 1
+*Nfill, Nset=EF1
+E1, F1, 10, 11
+*Nfill, Nset=GH1
+G1, H1, 10, 11
+*Nfill, Nset=EFGH1
+EF1, GH1, 10, 1
+*Nfill, Nset=ABCDEFGH1
+ABCD1, EFGH1, 10, 121
+***********************************************
+*Nfill, NSET=BD1
+B1, D1, 10, 1
+*Nfill, NSET=FH1
+F1, H1, 10, 1
+*Nfill, NSET=BDFH1
+BD1, FH1, 10, 121
+***********************************************
+*Surface, Name=TopfineSurf_NODEbased, Type=Node
+BDFH1
+***********************************************
+** Bottom Face Node Set
+*Nfill, NSET=AC1
+A1, C1, 10, 1
+*Nfill, NSET=EG1
+E1, G1, 10, 1
+*Nfill, NSET=ACEG1
+AC1, EG1, 10, 121
+***********************************************
+*ELEMENT,TYPE=C3D8
+1,1,2,13,12,122,123,134,133
+*ELGEN, elset=allel1
+1,10,1,1,10,11,10,10,121,100
+**************************************************************
+*Surface Interaction, Name=Indenter_Sample
+1
+*Friction
+0
+*SURFACE BEHAVIOR, PRESSURE-OVERCLOSURE=HARD
+*Contact Pair, interaction=Indenter_Sample, Type=Node to surface
+TopfineSurf_ELMbased, Indentertip
+**************************************************************
+*ELSET, elset=ALLEL
+allel1,
+*Orientation, name=Ori
+1,0,0,1,1,0
+3,0
+*Solid Section, elset=ALLEL, material=material-1, Orientation=Ori
+1
+*Material, name=material-1
+*Elastic,type=anisotropic
+221.1,135.1,221.1,135.1,135.1,221.1,0,0
+0,122.1,0,0,0,0,122.1,0
+0,0,0,0,122.1
+*Step, name=indent-1,  nlgeom=YES, inc=1000000
+*Static
+0.001,1,1e-05,0.01
+*boundary
+ACEG1,3, 3, 0
+A1, ENCASTRE
+G1, ENCASTRE
+Refpoint,1, 1, 0
+Refpoint,2, 2, 0
+Refpoint,3, 3, -1e-05
+Refpoint,4, 4, 0
+Refpoint,5, 5, 0
+Refpoint,6, 6, 0
+*Restart, write, frequency=0
+*Output, field
+*Node Output, nset=Refpoint
+RF,  U
+*Node Print, frequency = 1, nset = Refpoint, summary=No, totals = No
+RF3,  U3
+*Output, field, variable=PRESELECT
+*Output, history
+*Contact Output
+CAREA, CFNM, CFSM, CFTM
+*contact Print, frequency = 1, summary=No, totals = No
+CAREA, CFNM, CFSM, CFTM
+*End Step
