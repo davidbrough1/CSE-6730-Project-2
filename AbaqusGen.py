@@ -378,8 +378,8 @@ def generateAbaqusInp(inputFileName, ms):
                 elif (phase == 2):
                     elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
     
-    printNodeSet(f, elset1, 'elset1')
-    printNodeSet(f, elset2, 'elset2')
+    printEleSet(f, elset1, 'elset1')
+    printEleSet(f, elset2, 'elset2')
     
     f.writelines(('**** ----------------------------------------------------------------- ', nl))
     f.writelines(('** MATERIALS', nl))
