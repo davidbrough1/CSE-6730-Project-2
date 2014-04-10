@@ -83,7 +83,7 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
     # For +y Normal
     NodeYp_pbc = set(NodeYp).difference(set(NodeZn), set(NodeZp), set(NodeXn), set(NodeXp))
     # For -y Normal
-    NodeYn_pbc = set(NodeYp).difference(set(NodeZn), set(NodeZp), set(NodeXn), set(NodeYn))
+    NodeYn_pbc = set(NodeYn).difference(set(NodeZn), set(NodeZp), set(NodeXn), set(NodeXp))
     # For -z Normal
     NodeZn_pbc = set(NodeZn).difference(set(NodeYn), set(NodeYp), set(NodeXn), set(NodeXp))
     # For +z Normal   
@@ -243,6 +243,20 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('*ELGEN, elset=allel',nl))
     f.writelines((','.join(map(str,flatten(ELGEN))), nl))
     
+    elset1 = []
+    elset2 = []
+    for i in range(intx):
+        for j in range(inty):
+            for k in range(intz):
+                phase = ms[i][j][k]
+                if (phase == 1):
+                    elset1.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+                elif (phase == 2):
+                    elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+    
+    printEleSet(f, elset1, 'elset1')
+    printEleSet(f, elset2, 'elset2')
+    
     Total_Elements=intx*inty*intz
     
     (NodeXn_pbc, NodeXp_pbc, NodeYp_pbc, NodeYn_pbc, NodeZp_pbc, NodeZn_pbc,
@@ -279,7 +293,7 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('*Equation', nl))
     
     f.writelines(('3', nl))
-    f.writelines(('n1plus, 1, 1, n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('n1plus, 1, 1, n1minus, 1, -1, {}, 1, -1'.format(setH), nl))
     f.writelines(('2', nl))
     f.writelines(('n1plus, 2, 1, n1minus, 2, -1', nl))
     f.writelines(('2', nl))
@@ -301,9 +315,9 @@ def generateAbaqusInp(inputFileName, ms):
     
     f.writelines(('**', nl))
     f.writelines(('3', nl))
-    f.writelines(('n1plus_n2plus, 1, 1, n1minus_n2plus, 1, -1, H, 1, -1', nl))
+    f.writelines(('n1plus_n2plus, 1, 1, n1minus_n2plus, 1, -1, {}, 1, -1'.format(setH), nl))
     f.writelines(('3', nl))
-    f.writelines(('n1plus_n2minus, 1, 1, n1minus_n2minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('n1plus_n2minus, 1, 1, n1minus_n2minus, 1, -1, {}, 1, -1'.format(setH), nl))
     f.writelines(('2', nl))
     f.writelines(('n1minus_n2plus, 1, 1, n1minus_n2minus, 1, -1', nl))
     
@@ -325,9 +339,9 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('**', nl))
     f.writelines(('3', nl))
     # maybe do formatting to fill in value for H
-    f.writelines(('n3plus_n1plus, 1, 1, n3plus_n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('n3plus_n1plus, 1, 1, n3plus_n1minus, 1, -1, {}, 1, -1'.format(setH), nl))
     f.writelines(('3', nl))
-    f.writelines(('n3minus_n1plus, 1, 1, n3minus_n1minus, 1, -1, H, 1, -1', nl))
+    f.writelines(('n3minus_n1plus, 1, 1, n3minus_n1minus, 1, -1, {}, 1, -1'.format(setH), nl))
     f.writelines(('2', nl))
     f.writelines(('n3plus_n1minus, 1, 1, n3minus_n1minus, 1, -1', nl))
     f.writelines(('**', nl))
@@ -366,20 +380,6 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('n2plus_n3minus, 3, 1, n2minus_n3minus, 3, -1', nl))
     f.writelines(('2', nl))
     f.writelines(('n2minus_n3plus, 3, 1, n2minus_n3minus, 3, -1', nl))
-
-    elset1 = []
-    elset2 = []
-    for i in range(intx):
-        for j in range(inty):
-            for k in range(intz):
-                phase = ms[i][j][k]
-                if (phase == 1):
-                    elset1.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
-                elif (phase == 2):
-                    elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
-    
-    printEleSet(f, elset1, 'elset1')
-    printEleSet(f, elset2, 'elset2')
     
     f.writelines(('**** ----------------------------------------------------------------- ', nl))
     f.writelines(('** MATERIALS', nl))
