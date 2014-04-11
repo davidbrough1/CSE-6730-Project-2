@@ -253,6 +253,9 @@ def generateAbaqusInp(inputFileName, ms):
                     elset1.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
                 elif (phase == 2):
                     elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+                else:
+                    elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
+                    
     
     printEleSet(f, elset1, 'elset1')
     printEleSet(f, elset2, 'elset2')
