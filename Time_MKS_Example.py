@@ -7,12 +7,17 @@ import os as os
 
 fileLocation = os.path.abspath('DDHO.2.csv')
 calibrationData = pd.io.parsers.read_csv(fileLocation)
-tf.dataAnalysis(calibrationData)
+names = calibrationData.columns
 calibrationData = pd.io.parsers.read_csv(fileLocation)
+
 AR = 2
 D = 1
 Exo = 1
 Delay = 0
+
+#calibrationData[names[1]] = sp.fftpack.fft(calibrationData[names[1]].values)
+#calibrationData[names[2]] = sp.fftpack.fft(calibrationData[names[2]].values)
+
 
 model = tf.TFmodel(calibrationData,AR,D,Exo,Delay)
 calibrationData = pd.io.parsers.read_csv(fileLocation)

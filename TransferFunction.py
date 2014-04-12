@@ -63,6 +63,8 @@ def TFmodel(data,ARorder,diffOrder,exoOrder,exoDelay):
     #Equating lengths of time series
     yt = yt[(exoOrder+exoDelay):len(yt)]
     #Fit the model
+    print 'Calculating Coefficients'
+    print ' '
     model = sm.tsa.ARIMA(yt, order = (ARorder,diffOrder,0), exog = Xt).fit(trend = 'nc')
     #model analysis
     return model
@@ -135,7 +137,6 @@ def createExoMat(Exo,q,name,Time,D):
         tempSeries.columns = columnName
         tempSeries.index = pd.to_datetime(Time)
         X[columnName] = tempSeries
-    print X[97:102]
     return X
         
 
