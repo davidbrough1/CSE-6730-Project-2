@@ -254,6 +254,7 @@ def generateAbaqusInp(inputFileName, ms):
                 elif (phase == 2):
                     elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
                 else:
+                    print 'phase not 1 or 2: {}'.format(phase)
                     elset2.append(getEleNumber(i, j, k, intx, inty, intz, Fine_int))
                     
     
