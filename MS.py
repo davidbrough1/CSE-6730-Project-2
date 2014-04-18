@@ -114,8 +114,8 @@ def MS( A,H,n,r,Iso1,Iso2):
     np.insert(Pval,0,0)
     
     for ii in range(H):
-        DMS3[DMS3<=Pval[ii]]= ii+2
-    DMS3 = DMS3-sp.ones(Dim)
+        DMS3[DMS3<=Pval[ii]]= ii+3
+    DMS3 = DMS3-sp.ones(Dim)*2
     return np.floor(DMS3.real)
 
 #TO Do

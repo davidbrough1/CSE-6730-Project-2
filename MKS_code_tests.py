@@ -20,8 +20,8 @@ MicroS3D = MS(Mat3D,3,1,20,10,20)
 #Tests for MSf
 
 MAT2D = MS(sp.rand(3,3),2,1,1,1,1)
-print MAT2D
+#print MAT2D
 MSf2D = MSf(MAT2D )
-print MSf2D
+#print MSf2D
 MSf3D = MSf(MS(sp.rand(3,3,3),3,1,1,1,1))
 #print MSf3D
