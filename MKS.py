@@ -63,11 +63,14 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	strains_2 = ABstrains(ABout2)
 	
 	#calculate DFT space responses and microstructure functions
-	response_1_k = np.fft.fftn(strains_1, strains_1.size, [0,1,2])
-	micro_1_k = np.fft.fftn(MicroSF_1, MicroSF_1.size, [0,1,2])
-	
-	response_2_k = np.fft.fftn(strains_2, strains_2.size, [0,1,2])
-	micro_2_k = np.fft.fftn(MicroSF_2, MicroSF_2.size, [0,1,2])
+	response_1_k = np.fft.fftn(strains_1)
+	micro_1_k = zeros(MicroSF_1.shape,dtype=complex)
+	micro_1_k[:,:,:,0] = np.fft.fftn(MicroSF_1[:,:,:,0])
+	micro_1_k[:,:,:,1] = np.fft.fftn(MicroSF_1[:,:,:,1])
+	response_2_k = np.fft.fftn(strains_2)
+	micro_2_k = zeros(MicroSF_2.shape,dtype=complex)
+	micro_2_k[:,:,:,0] = np.fft.fftn(MicroSF_2[:,:,:,0])
+	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
 	
 	#divide responses by inputs to begin calculating coefficients
 	response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
@@ -75,9 +78,10 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	
 	#explicitly invert matrix and solve for coefficients
 	dim_len = response_1_k.shape[0]
-	coeff = zeros( (dim_len,dim_len,dim_len, 2) )
-	det = zeros( (dim_len,dim_len,dim_len) )
-	det[:,:,:] = 1/( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
+	coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
+	det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
+	det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
+	print det
 	coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
 	coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
 	#note coefficents returned are ready to be used by the MKS response but 
@@ -93,7 +97,8 @@ def ExpandCoeff(coeff, new_side_len):
 	#perform complex conjugate
 	np.conj(coeff)
 	#coefficients to the spatial format instead of DFT
-	coeff = np.fft.ifftn(coeff, coeff.size, [0,1,2])
+	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
+	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
 	
 	#both old side length and new should be odd so centering is easy
 	new_coeff = zeros((new_side_len,new_side_len,new_side_len,2))
@@ -102,7 +107,8 @@ def ExpandCoeff(coeff, new_side_len):
 	new_coeff[offset:last_position,offset:last_position,offset:last_position,:] = coeff
 	
 	#convert coeff to DFT space
-	new_coeff = np.fft.fftn(new_coeff, new_coeff.size, [0,1,2])
+	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
+	new_coeff[:,:,:,1] = np.fft.fftn(new_coeff[:,:,:,1])
 	#perform complex conjugate
 	np.conj(new_coeff)
 	
