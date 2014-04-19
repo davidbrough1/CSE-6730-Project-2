@@ -24,4 +24,7 @@ def GenC(MicroSF_1, MicroSF_2 ABout1, ABout2, Macro)
 	det[:,:,:] = 1/( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
 	coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
 	coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
+	
+	coeff = np.fft.ifftn(coeff, coeff.size, [0,1,2])
+	
 	return coeff
