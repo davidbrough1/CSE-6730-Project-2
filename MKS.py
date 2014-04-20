@@ -73,27 +73,65 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
 	
 	#divide responses by inputs to begin calculating coefficients
-	response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
-	response_2_k[:,:,:] = [x/Macro for x in response_2_k] 
+	#response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
+	#response_2_k[:,:,:] = [x/Macro for x in response_2_k] 
 	
 	#explicitly invert matrix and solve for coefficients
 	dim_len = response_1_k.shape[0]
-	coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
-	det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
-	det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
+	#coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
+	#det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
+	#det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
 	#print det
-	coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
-	coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
+	#coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
+	#coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
 	
 	#attempt to track error
-	errorLocs = np.where(det == 0)
-	print errorLocs[0][2]
-	print errorLocs[1][2]
-	print errorLocs[2][2]
+	#errorLocs = np.where(det == 0)
+	#print errorLocs[0][2]
+	#print errorLocs[1][2]
+	#print errorLocs[2][2]
 	
-	for blah in range(17):
-		print micro_1_k[0,0,blah,0]
-		print micro_1_k[0,0,blah,1]
+	#for blah in range(17):
+	#	print micro_1_k[0,0,blah,0]
+	#	print micro_1_k[0,0,blah,1]
+	
+	micro_1_k[:,:,:,:] = [x*Macro for x in micro_1_k] 
+	micro_2_k[:,:,:,:] = [x*Macro for x in micro_2_k] 
+	
+	coeff = zeros( (dim_len,dim_len,dim_len) , dtype=complex)
+	
+	#attempt to perform least squares solution
+	for i in range(dim_len):
+		for j in range(dim_len):
+			for k in range(dim_len):
+				if(i==0 and k==0 and j==0):
+					break
+				x1 = micro_1_k[i,j,k,0] 
+				x2 = micro_2_k[i,j,k,0]
+				y1 = response_1_k[i,j,k]
+				y2 = response_2_k[i,j,k]
+				y_vec = zeros((2,1), dtype=complex)
+				y_vec[0] = y1
+				y_vec[1] = y2
+				trans_inv = zeros((2,2), dtype=complex)
+				trans_inv[0,0] = x1**2+x2**2
+				trans_inv[0,1] = -x1-x2
+				trans_inv[1,0] = -x1-x2
+				trans_inv[1,1] = 2
+				det = (x1**2-2*x1*x2+x2**2)
+				trans_inv[:,:] = [x/det for x in trans_inv] 
+				x_trans = zeros((2,2), dtype=complex)
+				x_trans[0,0] = 1
+				x_trans[0,1] = 1
+				x_trans[1,0] = x1
+				x_trans[1,1] = x2
+				crap = np.dot(trans_inv,x_trans)
+				temp = np.dot(crap,y_vec)
+				arg = temp[1]
+				coeff[i,j,k] = arg[0]
+	
+	
+	#coeff[:,:,:] = response_1_k/micro_1_k[:,:,:,0]
 	
 	#note coefficents returned are ready to be used by the MKS response but 
 	#are in the complex conjugate of the DFT space
@@ -133,9 +171,10 @@ def NewResponse(coeff, macro, MSf):
 	
 	MSf_DFT = zeros(MSf.shape,dtype=complex)
 	MSf_DFT[:,:,:,0] = np.fft.fftn(MSf[:,:,:,0])
-	MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
+	#MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
 	
-	response = MSf_DFT[:,:,:,0]*coeff[:,:,:,0]+MSf_DFT[:,:,:,1]*coeff[:,:,:,1]
+	#response = MSf_DFT[:,:,:,0]*coeff[:,:,:,0]+MSf_DFT[:,:,:,1]*coeff[:,:,:,1]
+	response = MSf_DFT[:,:,:,0]*coeff[:,:,:]
 	response[:,:,:] = [x*macro for x in response]
 	response = np.fft.ifftn(response)
 	return response
