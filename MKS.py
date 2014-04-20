@@ -80,7 +80,7 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	dim_len = response_1_k.shape[0]
 	coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
 	det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
-	det[:,:,:] = ( micro_1_k[:,:,:,0]**2 - micro_1_k[:,:,:,1]**2)
+	det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
 	#print det
 	coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
 	coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
