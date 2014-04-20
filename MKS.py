@@ -80,10 +80,21 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	dim_len = response_1_k.shape[0]
 	coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
 	det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
-	det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
-	print det
+	det[:,:,:] = ( micro_1_k[:,:,:,0]**2 - micro_1_k[:,:,:,1]**2)
+	#print det
 	coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
 	coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
+	
+	#attempt to track error
+	errorLocs = np.where(det == 0)
+	print errorLocs[0][2]
+	print errorLocs[1][2]
+	print errorLocs[2][2]
+	
+	for blah in range(17):
+		print micro_1_k[0,0,blah,0]
+		print micro_1_k[0,0,blah,1]
+	
 	#note coefficents returned are ready to be used by the MKS response but 
 	#are in the complex conjugate of the DFT space
 	return coeff
@@ -120,10 +131,12 @@ def ExpandCoeff(coeff, new_side_len):
 def NewResponse(coeff, macro, MSf):
 	response = zeros(coeff.shape[0:3])
 	
-	MSf_DFT = np.fft.fftn(MSf, MSf.size, [0,1,2])
+	MSf_DFT = zeros(MSf.shape,dtype=complex)
+	MSf_DFT[:,:,:,0] = np.fft.fftn(MSf[:,:,:,0])
+	MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
 	
 	response = MSf_DFT[:,:,:,0]*coeff[:,:,:,0]+MSf_DFT[:,:,:,1]*coeff[:,:,:,1]
-	response[:,:,:] = [x*Macro for x in response]
+	response[:,:,:] = [x*macro for x in response]
 	response = np.fft.ifftn(response)
 	return response
 
