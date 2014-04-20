@@ -5,7 +5,7 @@ from numpy import *
 def GenDelta(side_len,swap_phases):
 	MSf_1 = zeros((side_len,side_len,side_len,1))
 	MSf_2 = ones((side_len,side_len,side_len,1))
-	middle = ceil(side_len/2.0)
+	middle = side_len/2
 	MSf = np.concatenate((MSf_1,MSf_2),axis=3)
 	MSf[middle,middle,middle,0] = 1
 	MSf[middle,middle,middle,1] = 0
@@ -144,9 +144,9 @@ def NewResponse(coeff, macro, MSf):
 #graphically displays the grayscale picture of a 2D array slice
 #min and max vals allow for consistent scaling between two output arrays
 def ShowSlice(vals, min_val, max_val):
-	import matplotlib as mpl
+	import matplotlib.pyplot as plt
 
 	# tell imshow about color map so that only set colors are used
-	img = pyplot.imshow(vals,cmap = pyplot.get_cmap('gray'),vmin=min_val, vmax=max_val)
+	img = plt.imshow(vals,cmap = plt.get_cmap('gray'),vmin=min_val, vmax=max_val)
 
-	pyplot.show()
+	plt.show()
