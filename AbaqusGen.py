@@ -29,6 +29,9 @@ def printEleSet(f, eleSet, eleSetName):
 # Returns the node number for the given indices
 def getEleNumber(i, j, k, intx, inty, intz, Fine_int):
     return (j) + (i)*inty*Fine_int*intz*Fine_int + (k)*inty*Fine_int + 1
+
+def getIndices(eleNumber, intx, inty, intz, Fine_int):
+    return (eleNumber//(inty*Fine_int*intz*Fine_int), eleNumber % inty*Fine_int*intz*Fine_int, eleNumber // inty*Fine_int)
     
 # Returning the sets of nodes on the two faces and the edge
 def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f):
@@ -109,7 +112,7 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
             n1plus_n2minus, n1plus_n2plus, n1minus_n2minus, n1minus_n2plus)
 
 # Generates an abaqus input for the given microstructure. Only works for microstructures with two phases
-def generateAbaqusInp(inputFileName, ms):
+def generateAbaqusInp(inputFileName, ms, viscoelastic=False):
     f = open(inputFileName, 'w')
     nl = "\n"
     headerLines = '*Preprint, echo=NO, model=No, history=NO, contact=NO', nl, '*Heading', nl
@@ -186,12 +189,6 @@ def generateAbaqusInp(inputFileName, ms):
     setABCDEFGH_f = [intx, LayerNodes*Fine_int]
     nFillDict['ABCDEFGH'] = setABCDEFGH_f
     
-#    for i in range(1, np.log2(len(nSetNames))):
-#        windowSize = 2**i
-#        for j in range(len(nSetNames)/windowSize):
-#            nodeSet = []
-#            for k in range(windowSize):
-#                nodeSet += nSetNames[j*windowSize + k]
     f.write(nFillFormat.format('AB','A','B', setAB_f[0], setAB_f[1]))
     f.write(nFillFormat.format('CD','C','D', setCD_f[0], setCD_f[1]))
     f.write(nFillFormat.format('ABCD','AB','CD', setABCD_f[0], setABCD_f[1]))
@@ -393,6 +390,10 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('*Material, name=material-1', nl))
     f.writelines(('*Elastic,type=isotropic', nl))
     f.writelines(('120, 0.3', nl))
+    if (viscoelastic):
+        f.writelines(('*Viscoelastic, Time=Prony', nl))
+        f.writelines(('0.066, 0.066, 20'), nl)
+        f.writelines(('0.0528, 0.0528, 10'), nl)
     f.writelines(('** Solid (element 2 = elset2)', nl))
     f.writelines(('**', nl))
     f.writelines(('*Solid Section, elset=elset2, material=material-2', nl))
@@ -400,6 +401,10 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('**', nl))
     f.writelines(('*Material, name=material-2', nl))
     f.writelines(('*Elastic,type=isotropic', nl))
+    if (viscoelastic):
+        f.writelines(('*Viscoelastic, Time=Prony'), nl)
+        f.writelines(('0.066, 0.066, 20'), nl)
+        f.writelines(('0.0528, 0.0528, 10'), nl)
     f.writelines(('80, 0.3', nl))
     f.writelines(('** ----------------------------------------------------------------', nl))
     f.writelines(('**     ', nl))
@@ -437,11 +442,9 @@ def generateAbaqusInp(inputFileName, ms):
     f.writelines(('*output, history, frequency=0', nl))
     f.writelines(('** ', nl))
     f.writelines(('*el print, summary=no, totals=yes', nl))
-    f.writelines(('E', nl))
+    f.writelines(('S', nl))
     f.writelines(('**', nl))
     f.writelines(('*End Step', nl))
     
     
-
-
-    
+#    F or displacement : 50, timestep
