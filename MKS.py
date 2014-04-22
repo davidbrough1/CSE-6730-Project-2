@@ -67,10 +67,12 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	micro_1_k = zeros(MicroSF_1.shape,dtype=complex)
 	micro_1_k[:,:,:,0] = np.fft.fftn(MicroSF_1[:,:,:,0])
 	micro_1_k[:,:,:,1] = np.fft.fftn(MicroSF_1[:,:,:,1])
+	#print (micro_1_k[0,0,0,0]+micro_1_k[0,0,0,1])
 	response_2_k = np.fft.fftn(strains_2)
 	micro_2_k = zeros(MicroSF_2.shape,dtype=complex)
 	micro_2_k[:,:,:,0] = np.fft.fftn(MicroSF_2[:,:,:,0])
 	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
+	#print (micro_2_k[0,0,0,0]+micro_2_k[0,0,0,1])
 	
 	#divide responses by inputs to begin calculating coefficients
 	#response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
@@ -94,47 +96,67 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	#for blah in range(17):
 	#	print micro_1_k[0,0,blah,0]
 	#	print micro_1_k[0,0,blah,1]
-	
-	micro_1_k[:,:,:,:] = [x*Macro for x in micro_1_k] 
-	micro_2_k[:,:,:,:] = [x*Macro for x in micro_2_k] 
-	
-	coeff = zeros( (dim_len,dim_len,dim_len) , dtype=complex)
-	
+		
+	coeff = zeros( (dim_len,dim_len,dim_len,2) , dtype=complex)
+
 	#attempt to perform least squares solution
 	for i in range(dim_len):
 		for j in range(dim_len):
 			for k in range(dim_len):
-				if(i==0 and k==0 and j==0):
-					break
-				x1 = micro_1_k[i,j,k,0] 
-				x2 = micro_2_k[i,j,k,0]
-				y1 = response_1_k[i,j,k]
-				y2 = response_2_k[i,j,k]
-				y_vec = zeros((2,1), dtype=complex)
-				y_vec[0] = y1
-				y_vec[1] = y2
-				trans_inv = zeros((2,2), dtype=complex)
-				trans_inv[0,0] = x1**2+x2**2
-				trans_inv[0,1] = -x1-x2
-				trans_inv[1,0] = -x1-x2
-				trans_inv[1,1] = 2
-				det = (x1**2-2*x1*x2+x2**2)
-				trans_inv[:,:] = [x/det for x in trans_inv] 
-				x_trans = zeros((2,2), dtype=complex)
-				x_trans[0,0] = 1
-				x_trans[0,1] = 1
-				x_trans[1,0] = x1
-				x_trans[1,1] = x2
-				crap = np.dot(trans_inv,x_trans)
-				temp = np.dot(crap,y_vec)
-				arg = temp[1]
-				coeff[i,j,k] = arg[0]
+# 				if(i==0 and k==0 and j==0):
+# 					break
+# 				x1 = micro_1_k[i,j,k,0] 
+# 				x2 = micro_2_k[i,j,k,0]
+# 				y1 = response_1_k[i,j,k]
+# 				y2 = response_2_k[i,j,k]
+# 				y_vec = zeros((2,1), dtype=complex)
+# 				y_vec[0] = y1
+# 				y_vec[1] = y2
+# 				trans_inv = zeros((2,2), dtype=complex)
+# 				trans_inv[0,0] = x1**2+x2**2
+# 				trans_inv[0,1] = -x1-x2
+# 				trans_inv[1,0] = -x1-x2
+# 				trans_inv[1,1] = 2
+# 				det = (x1**2-2*x1*x2+x2**2)
+# 				trans_inv[:,:] = [x/det for x in trans_inv] 
+# 				x_trans = zeros((2,2), dtype=complex)
+# 				x_trans[0,0] = 1
+# 				x_trans[0,1] = 1
+# 				x_trans[1,0] = x1
+# 				x_trans[1,1] = x2
+# 				crap = np.dot(trans_inv,x_trans)
+# 				temp = np.dot(crap,y_vec)
+# 				arg = temp[1]
+# 				coeff[i,j,k] = arg[0]
 	
+				#u,v,w = i,j,k
+				#The following 2 quantities are used in the normal equation during regression.
+				MM = np.zeros((2,2)) + 0j*np.zeros((2,2))# Microstucture matrix (M' M*) 
+				PM = np.zeros((2,1)) + 0j*np.zeros((2,1))# Property matrix (P M*) 
+
+				mSQc = np.conjugate(micro_1_k[i,j,k,:])  # Conjugate of FFT of Microstructure     
+				mSQt = np.mat(micro_1_k[i,j,k,:]).T      # Transpose of FFT of Microstructure
+
+				MM = MM + np.outer(mSQt,mSQc)        # Calculate MM
+				PM = PM + (response_1_k[i,j,k] * mSQc) # Calculate PM
+				
+				mSQc = np.conjugate(micro_2_k[i,j,k,:])  # Conjugate of FFT of Microstructure     
+				mSQt = np.mat(micro_2_k[i,j,k,:]).T      # Transpose of FFT of Microstructure
+
+				MM = MM + np.outer(mSQt,mSQc)        # Calculate MM
+				PM = PM + (response_2_k[i,j,k] * mSQc) # Calculate PM
+	
+				if ((i==0 and j ==0) and (k==0 or k==1)):
+					p = independent_columns(MM, .001)
+
+				calred = MM[p,:][:,p]      # Linearly independent columns of MM
+				resred = PM[p,0].conj().T  # Linearly independent columns of PM 
+
+				coeff[i,j,k,p] = np.linalg.solve(calred, resred)   
+
 	
 	#coeff[:,:,:] = response_1_k/micro_1_k[:,:,:,0]
 	
-	#note coefficents returned are ready to be used by the MKS response but 
-	#are in the complex conjugate of the DFT space
 	return coeff
 
 #takes in conj of DFT coefficients, output new matrix with conj of DFT coefficients such that it is ready to use in the DFT space
@@ -144,7 +166,7 @@ def ExpandCoeff(coeff, new_side_len):
 		return coeff
 		
 	#perform complex conjugate
-	np.conj(coeff)
+	coeff = np.conj(coeff)
 	#coefficients to the spatial format instead of DFT
 	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
 	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
@@ -159,7 +181,7 @@ def ExpandCoeff(coeff, new_side_len):
 	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
 	new_coeff[:,:,:,1] = np.fft.fftn(new_coeff[:,:,:,1])
 	#perform complex conjugate
-	np.conj(new_coeff)
+	new_coeff = np.conj(new_coeff)
 	
 	return new_coeff
 
@@ -171,11 +193,9 @@ def NewResponse(coeff, macro, MSf):
 	
 	MSf_DFT = zeros(MSf.shape,dtype=complex)
 	MSf_DFT[:,:,:,0] = np.fft.fftn(MSf[:,:,:,0])
-	#MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
+	MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
 	
-	#response = MSf_DFT[:,:,:,0]*coeff[:,:,:,0]+MSf_DFT[:,:,:,1]*coeff[:,:,:,1]
-	response = MSf_DFT[:,:,:,0]*coeff[:,:,:]
-	response[:,:,:] = [x*macro for x in response]
+	response = lin_sum = np.sum(np.conjugate(coeff) * MSf_DFT[:,:,:,:], 3)
 	response = np.fft.ifftn(response)
 	return response
 
@@ -189,3 +209,20 @@ def ShowSlice(vals, min_val, max_val):
 	img = plt.imshow(vals,cmap = plt.get_cmap('gray'),vmin=min_val, vmax=max_val)
 
 	plt.show()
+
+"""
+Noah Paulson, 3/27/2014
+"""
+def independent_columns(A, tol = 1e-05):
+    """
+    This function is from: http://stackoverflow.com/q/13312498
+
+    Returns an array composed of independent columns of A.
+
+    Note that answer may not be unique; this function returns one of many
+    possible answers.
+    """
+    Q, R = np.linalg.qr(A)
+    independent = np.where(np.abs(R.diagonal()) > tol)[0]
+    #return A[:, independent]
+    return independent
