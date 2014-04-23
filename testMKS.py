@@ -22,9 +22,9 @@ print 'MSf2,1'
 print MSf2[9:12,9:12,9:12,1]
 '''
 
-stress1 = MKS.ABstrains("deltaM_modeling/21deltaM_1surroundedBy2.dat")
-stress2 = MKS.ABstrains("deltaM_modeling/21deltaM_2surroundedBy1.dat")
-stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
+stress1 = MKS.ABstrains("deltaM_modeling/21deltaM_1surroundedBy2_strain.dat")
+stress2 = MKS.ABstrains("deltaM_modeling/21deltaM_2surroundedBy1_strain.dat")
+#stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
 
 """
 Noah's Code Test
@@ -43,6 +43,8 @@ Macro = .02
 
 fcoeff = MKS.GenC(MSf1, MSf2, "deltaM_modeling/21deltaM_1surroundedBy2.dat", "deltaM_modeling/21deltaM_2surroundedBy1.dat", Macro)
 
+fcoeff[0,0,0] = 1
+print fcoeff[0,0,0]
 
 coeff = np.zeros(fcoeff.shape,dtype = 'float')
 for ii in range(coeff.shape[3]):
@@ -97,22 +99,23 @@ for ii in range(2):
     plt.show()
 '''
    
-MSf41 = MSf.MSf(stress41)
-stressCalc = MKS.NewResponse(fcoeff, .02, MSf41)
+#MSf41 = MSf.MSf(stress41)
+stressCalc = MKS.NewResponse(fcoeff, .02, MSf1)
 stressCalc = np.real_if_close(stressCalc)
 
 #plot a surface graph of the influence coefficients for the middle slice
 
 fig = plt.figure()
+side_len = stressCalc.shape[0]
 ax = fig.gca(projection='3d')
-Z = (stress41[20,:,:]-stressCalc[20,:,:])/stress41[20,:,:]
-X = np.zeros((41,41))
-Y = np.zeros((41,41))
+Z = (stress1[side_len/2,:,:]-stressCalc[side_len/2,:,:])/stress1[side_len/2,:,:]
+X = np.zeros((side_len,side_len))
+Y = np.zeros((side_len,side_len))
 
 Zmin = Z.min()
 Zmax = Z.max()
-for i in range(41):
-	for j in range(41):
+for i in range(side_len):
+	for j in range(side_len):
 		X[i,j] = i
 		Y[i,j] = j
 ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3,cmap=cm.coolwarm)
@@ -121,9 +124,9 @@ cset = ax.contour(X, Y, Z, zdir='x', offset=0, cmap=cm.coolwarm)
 cset = ax.contour(X, Y, Z, zdir='y', offset=0, cmap=cm.coolwarm)
 
 ax.set_xlabel('X')
-ax.set_xlim(0, 41)
+ax.set_xlim(0, side_len)
 ax.set_ylabel('Y')
-ax.set_ylim(0, 41)
+ax.set_ylim(0, side_len)
 ax.set_zlabel('Z')
 ax.set_zlim(Zmin, Zmax)
 
