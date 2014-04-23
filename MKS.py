@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import *
+import matplotlib.pylab as plt
 
 #generate a delta microstructure function, returns a 4d array, 3d spatial 1d microstructure
 def GenDelta(side_len,swap_phases):
@@ -61,6 +62,36 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	#process ABAQUS output files and return 11 strains for each element
 	strains_1 = ABstrains(ABout1)
 	strains_2 = ABstrains(ABout2)
+	'''
+	plt.imshow(strains_2[11,:,:])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(strains_2[:,11,:])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(strains_2[:,:,11])
+	plt.colorbar()
+	plt.show()
+	
+	plt.imshow(MicroSF_1[10,:,:,1])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(MicroSF_1[:,10,:,1])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(MicroSF_1[:,:,10,1])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(MicroSF_2[10,:,:,1])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(MicroSF_2[:,10,:,1])
+	plt.colorbar()
+	plt.show()
+	plt.imshow(MicroSF_2[:,:,10,1])
+	plt.colorbar()
+	plt.show()
+	'''
 	
 	#calculate DFT space responses and microstructure functions
 	response_1_k = np.fft.fftn(strains_1)
@@ -72,7 +103,52 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	micro_2_k = zeros(MicroSF_2.shape,dtype=complex)
 	micro_2_k[:,:,:,0] = np.fft.fftn(MicroSF_2[:,:,:,0])
 	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
-	#print (micro_2_k[0,0,0,0]+micro_2_k[0,0,0,1])
+	
+	'''
+        
+
+        plt.imshow(MicroSF_2[10,:,:,0])
+        plt.colorbar()
+        plt.show()
+	plt.imshow(MicroSF_2[10,:,:,1])
+        plt.colorbar()
+        plt.show()
+	
+	M1S0 = np.real_if_close(np.fft.ifftn(micro_1_k[:,:,:,0]))
+	M1S1 = np.real_if_close(np.fft.ifftn(micro_1_k[:,:,:,1]))
+	M1S0 = np.roll(M1S0,10, axis = 0)
+        M1S0 = np.roll(M1S0,10, axis = 1)
+        M1S0 = np.roll(M1S0,10, axis = 2)
+        plt.imshow(M1S0[10,:,:])
+        plt.colorbar()
+        plt.show()
+        M1S1 = np.roll(M1S1,10, axis = 0)
+        M1S1 = np.roll(M1S1,10, axis = 1)
+        M1S1 = np.roll(M1S1,10, axis = 2)
+        plt.imshow(M1S1[10,:,:])
+        plt.colorbar()
+        plt.show()
+        
+	M2S0 = np.real_if_close(np.fft.ifftn(micro_2_k[:,:,:,0]))
+	M2S1 = np.real_if_close(np.fft.ifftn(micro_2_k[:,:,:,1]))
+	M2S0 = np.roll(M2S0,10, axis = 0)
+        M2S0 = np.roll(M2S0,10, axis = 1)
+        M2S0 = np.roll(M2S0,10, axis = 2)
+        plt.imshow(M2S0[10,:,:])
+        plt.colorbar()
+        plt.show()
+        M2S1 = np.roll(M2S1,10, axis = 0)
+        M2S1 = np.roll(M2S1,10, axis = 1)
+        M2S1 = np.roll(M2S1,10, axis = 2)
+        plt.imshow(M2S1[10,:,:])
+        plt.colorbar()
+        plt.show()
+        
+	
+	print M2S0[10:13,10:13,10:13]
+	print M2S1[10:12,10:12,10:12]
+	print (micro_2_k[0,0,0,0]+micro_2_k[0,0,0,1])
+        '''
 	
 	#divide responses by inputs to begin calculating coefficients
 	#response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
@@ -96,7 +172,8 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	#for blah in range(17):
 	#	print micro_1_k[0,0,blah,0]
 	#	print micro_1_k[0,0,blah,1]
-		
+	micro_1_k[:,:,:,1] = [x*1.5 for x in micro_1_k[:,:,:,1]]
+	micro_2_k[:,:,:,1] = [x*1.5 for x in micro_2_k[:,:,:,1]]
 	coeff = zeros( (dim_len,dim_len,dim_len,2) , dtype=complex)
 
 	#attempt to perform least squares solution
@@ -146,8 +223,8 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 				MM = MM + np.outer(mSQt,mSQc)        # Calculate MM
 				PM = PM + (response_2_k[i,j,k] * mSQc) # Calculate PM
 	
-				if ((i==0 and j ==0) and (k==0 or k==1)):
-					p = independent_columns(MM, .001)
+				#if ((i==0 and j ==0) and (k==0 or k==1)):
+                                p = independent_columns(MM, .001)
 
 				calred = MM[p,:][:,p]      # Linearly independent columns of MM
 				resred = PM[p,0].conj().T  # Linearly independent columns of PM 
