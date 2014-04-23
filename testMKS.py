@@ -22,9 +22,9 @@ print 'MSf2,1'
 print MSf2[9:12,9:12,9:12,1]
 '''
 
-stress1 = MKS.ABstrains("deltaM_modeling/21deltaM_1surroundedBy2.dat")
-stress2 = MKS.ABstrains("deltaM_modeling/21deltaM_2surroundedBy1.dat")
-stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
+stress1 = MKS.ABstrains("deltaM_modeling/21_1_noah2.dat")
+stress2 = MKS.ABstrains("deltaM_modeling/21_2_noah2.dat")
+#stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
 
 """
 Noah's Code Test
@@ -41,7 +41,7 @@ stressNoah2 = stress2.reshape((1,1,21**3)
 
 Macro = .02
 
-fcoeff = MKS.GenC(MSf1, MSf2, "deltaM_modeling/21deltaM_1surroundedBy2.dat", "deltaM_modeling/21deltaM_2surroundedBy1.dat", Macro)
+fcoeff = MKS.GenC(MSf1, MSf2, "deltaM_modeling/21_1_noah2.dat", "deltaM_modeling/21_2_noah2.dat", Macro)
 
 
 coeff = np.zeros(fcoeff.shape,dtype = 'float')
@@ -52,7 +52,7 @@ for ii in range(coeff.shape[3]):
     coeff[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 2)
 
 #plot a surface graph of the influence coefficients for the middle slice
-"""
+'''
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 Z = coeff[11,:,:,0]
@@ -75,10 +75,10 @@ ax.set_zlabel('Z')
 ax.set_zlim(-.0005, .005)
 
 plt.show()
-"""
 
 
-'''
+
+
 for ii in range(2):
     Coef11 = coeff[11,:,:,ii]
     C1 = plt.imshow(Coef11)
@@ -95,14 +95,17 @@ for ii in range(2):
     plt.colorbar()
     plt.title('Coef 33 H='+str(ii+1))
     plt.show()
+
 '''
+
+print stress1.shape
    
-MSf41 = MSf.MSf(stress41)
-stressCalc = MKS.NewResponse(fcoeff, .02, MSf41)
+#MSf1 = MSf.MSf(stress1)
+stressCalc = MKS.NewResponse(fcoeff, .02, MSf1)
 stressCalc = np.real_if_close(stressCalc)
 
 #plot a surface graph of the influence coefficients for the middle slice
-
+'''
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 Z = (stress41[20,:,:]-stressCalc[20,:,:])/stress41[20,:,:]
@@ -128,21 +131,21 @@ ax.set_zlabel('Z')
 ax.set_zlim(Zmin, Zmax)
 
 plt.show()
-
-
 '''
-plt.subplot(311)
+
+
+#plt.subplot(311)
 plt.imshow(stressCalc[8,:,:])
 plt.colorbar()
-#plt.show()
-plt.subplot(321)
+plt.show()
+#plt.subplot(321)
 plt.imshow(stress1[8,:,:])
 plt.colorbar()
-#plt.show()
+plt.show()
 aveS = np.average(stress1)
-plt.subplot(331)
-#plt.imshow((stress1[8,:,:]-stressCalc[8,:,:])/(aveS*stress1.shape[0]**3))
+#plt.subplot(331)
+plt.imshow((stress1[8,:,:]-stressCalc[8,:,:])/(aveS*stress1.shape[0]**3))
 plt.imshow((stress1[8,:,:]-stressCalc[8,:,:]))
 plt.colorbar()
 plt.show()
-'''
+
