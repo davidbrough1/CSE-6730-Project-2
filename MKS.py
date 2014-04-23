@@ -197,7 +197,7 @@ def NewResponse(coeff, macro, MSf):
 	
 	response = lin_sum = np.sum(np.conjugate(coeff) * MSf_DFT[:,:,:,:], 3)
 	response = np.fft.ifftn(response)
-	return response
+	return np.real_if_close(response)
 
 
 #graphically displays the grayscale picture of a 2D array slice
