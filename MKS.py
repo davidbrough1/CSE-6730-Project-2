@@ -248,11 +248,18 @@ def ExpandCoeff(coeff, new_side_len):
 	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
 	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
 	
+	coeff_centered = np.zeros(coeff.shape,dtype = 'float')
+	for ii in range(coeff.shape[3]):
+		coeff_centered[:,:,:,ii] = np.real_if_close(np.fft.ifftn(coeff[:,:,:,ii]))
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 0)
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 1)
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 2)
+	
 	#both old side length and new should be odd so centering is easy
 	new_coeff = zeros((new_side_len,new_side_len,new_side_len,2))
 	offset = (new_side_len-old_side_len)/2
 	last_position = offset+old_side_len
-	new_coeff[offset:last_position,offset:last_position,offset:last_position,:] = coeff
+	new_coeff[offset:last_position,offset:last_position,offset:last_position,:] = coeff_centered
 	
 	#convert coeff to DFT space
 	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])

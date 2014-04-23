@@ -22,9 +22,9 @@ print 'MSf2,1'
 print MSf2[9:12,9:12,9:12,1]
 '''
 
-stress1 = MKS.ABstrains("deltaM_modeling/21deltaM_1surroundedBy2_strain.dat")
-stress2 = MKS.ABstrains("deltaM_modeling/21deltaM_2surroundedBy1_strain.dat")
-#stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
+stress1 = MKS.ABstrains("deltaM_modeling/21deltaM_1surroundedBy2.dat")
+stress2 = MKS.ABstrains("deltaM_modeling/21deltaM_2surroundedBy1.dat")
+stress41 = MKS.ABstrains("outputModeling/41_2phase.dat")
 
 """
 Noah's Code Test
@@ -97,22 +97,22 @@ for ii in range(2):
     plt.show()
 '''
    
-#MSf41 = MSf.MSf(stress41)
-stressCalc = MKS.NewResponse(fcoeff, .02, MSf1)
+MSf41 = MSf.MSf(stress41)
+stressCalc = MKS.NewResponse(fcoeff, .02, MSf41)
 stressCalc = np.real_if_close(stressCalc)
 
 #plot a surface graph of the influence coefficients for the middle slice
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-Z = stress1[10,:,:]-stressCalc[10,:,:]
-X = np.zeros((21,21))
-Y = np.zeros((21,21))
+Z = (stress41[20,:,:]-stressCalc[20,:,:])/stress41[20,:,:]
+X = np.zeros((41,41))
+Y = np.zeros((41,41))
 
 Zmin = Z.min()
 Zmax = Z.max()
-for i in range(21):
-	for j in range(21):
+for i in range(41):
+	for j in range(41):
 		X[i,j] = i
 		Y[i,j] = j
 ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3,cmap=cm.coolwarm)
@@ -121,9 +121,9 @@ cset = ax.contour(X, Y, Z, zdir='x', offset=0, cmap=cm.coolwarm)
 cset = ax.contour(X, Y, Z, zdir='y', offset=0, cmap=cm.coolwarm)
 
 ax.set_xlabel('X')
-ax.set_xlim(0, 21)
+ax.set_xlim(0, 41)
 ax.set_ylabel('Y')
-ax.set_ylim(0, 21)
+ax.set_ylim(0, 41)
 ax.set_zlabel('Z')
 ax.set_zlim(Zmin, Zmax)
 
