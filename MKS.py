@@ -105,8 +105,6 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
 	
 	'''
-        
-
         plt.imshow(MicroSF_2[10,:,:,0])
         plt.colorbar()
         plt.show()
@@ -251,9 +249,9 @@ def ExpandCoeff(coeff, new_side_len):
 	coeff_centered = np.zeros(coeff.shape,dtype = 'float')
 	for ii in range(coeff.shape[3]):
 		coeff_centered[:,:,:,ii] = np.real_if_close(np.fft.ifftn(coeff[:,:,:,ii]))
-    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 0)
-    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 1)
-    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], 10, axis = 2)
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], old_side_len/2, axis = 0)
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], old_side_len/2, axis = 1)
+    	coeff_centered[:,:,:,ii] = np.roll(coeff[:,:,:,ii], old_side_len/2, axis = 2)
 	
 	#both old side length and new should be odd so centering is easy
 	new_coeff = zeros((new_side_len,new_side_len,new_side_len,2))
@@ -280,6 +278,7 @@ def NewResponse(coeff, macro, MSf):
 	MSf_DFT[:,:,:,1] = np.fft.fftn(MSf[:,:,:,1])
 	
 	response = lin_sum = np.sum(np.conjugate(coeff) * MSf_DFT[:,:,:,:], 3)
+	response[0,0,0] = macro*(MSf.shape[0]**3)
 	response = np.fft.ifftn(response)
 	return response
 
