@@ -421,9 +421,8 @@ def generateAbaqusInp(inputFileName, ms, viscoelastic=False):
     if (viscoelastic):
         # do something other than what was happening here
         f.writelines(('*Amplitude, Name=disp1, Definition=Tabular', nl))
-        f.writelines(('0,10', nl))
-        f.writelines(('10,10', nl))
-        f.writelines(('*Step, Amplitude=Ramp, name=Step-1,  nlgeom=YES, inc=1000000', nl))
+        f.writelines(('10,1', nl))
+        f.writelines(('*Step, Amplitude=Step, name=Step-1,  nlgeom=YES, inc=1000000', nl))
         f.writelines(('*Visco', nl))
         f.writelines(('0.5,10,1e-05,0.5', nl))
         f.writelines(('** Name: BC-1 Type: Displacement/Rotation', nl))
@@ -454,9 +453,8 @@ def generateAbaqusInp(inputFileName, ms, viscoelastic=False):
         
         # step 2
         f.writelines(('*Amplitude, Name=disp2, Definition=Tabular', nl))
-        f.writelines(('0,10', nl))
-        f.writelines(('10,10', nl))
-        f.writelines(('*Step, Amplitude=Ramp, name=Step-2,  nlgeom=YES, inc=1000000', nl))
+        f.writelines(('10,1', nl))
+        f.writelines(('*Step, Amplitude=Step, name=Step-2,  nlgeom=YES, inc=1000000', nl))
         f.writelines(('*Visco', nl))
         f.writelines(('0.5,10,1e-05,0.5', nl))
         f.writelines(('** Name: BC-1 Type: Displacement/Rotation', nl))
