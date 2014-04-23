@@ -1,5 +1,6 @@
 import scipy as sp
 import numpy as np
+import pickle
 from matplotlib.cbook import flatten
 
 def printNodeSet(f, nodeSet, nodeSetName):
@@ -113,6 +114,9 @@ def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Blo
 
 # Generates an abaqus input for the given microstructure. Only works for microstructures with two phases
 def generateAbaqusInp(inputFileName, ms, viscoelastic=False):
+    f = open (inputFileName + ".microstructure", 'w')
+    pickle.dump(ms, f)
+    f.close()
     f = open(inputFileName, 'w')
     nl = "\n"
     headerLines = '*Preprint, echo=NO, model=No, history=NO, contact=NO', nl, '*Heading', nl
@@ -517,6 +521,7 @@ def generateAbaqusInp(inputFileName, ms, viscoelastic=False):
         f.writelines(('E', nl))
         f.writelines(('**', nl))
         f.writelines(('*End Step', nl))
+    f.close()
     
     
 #    F or displacement : 50, timestep
