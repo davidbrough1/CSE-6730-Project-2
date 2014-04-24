@@ -30,9 +30,14 @@ def printEleSet(f, eleSet, eleSetName):
 # Returns the node number for the given indices
 def getEleNumber(i, j, k, intx, inty, intz, Fine_int):
     return (j) + (i)*inty*Fine_int*intz*Fine_int + (k)*inty*Fine_int + 1
-
-def getIndices(eleNumber, intx, inty, intz, Fine_int):
-    return (eleNumber//(inty*Fine_int*intz*Fine_int), eleNumber % inty*Fine_int*intz*Fine_int, eleNumber // inty*Fine_int)
+    
+def getIndices(eleNumber, dim_length):
+    i = eleNumber - 1
+    layer_size = dim_length**2
+    y = i % dim_length
+    z = (i % layer_size)/dim_length
+    x = i/layer_size
+    return (x,y,z)
     
 # Returning the sets of nodes on the two faces and the edge
 def intFaceNodes(intx, inty, intz, setA, setC, setE, Row_ELM_f, Layer_ELM_f, Block_ELM_f):
