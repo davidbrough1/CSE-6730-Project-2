@@ -166,10 +166,17 @@ def ExpandCoeff(coeff, new_side_len):
 		return coeff
 		
 	#perform complex conjugate
-	coeff = np.conj(coeff)
+	#coeff = np.conj(coeff)
 	#coefficients to the spatial format instead of DFT
 	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
 	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
+	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =0)
+	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =1)
+	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =2)
+	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =0)
+	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =1)
+	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =2)
+	
 	
 	#both old side length and new should be odd so centering is easy
 	new_coeff = zeros((new_side_len,new_side_len,new_side_len,2))
@@ -181,7 +188,7 @@ def ExpandCoeff(coeff, new_side_len):
 	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
 	new_coeff[:,:,:,1] = np.fft.fftn(new_coeff[:,:,:,1])
 	#perform complex conjugate
-	new_coeff = np.conj(new_coeff)
+	#new_coeff = np.conj(new_coeff)
 	
 	return new_coeff
 

@@ -39,8 +39,28 @@ Macro = .02
 coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
 coeff41 = MKS.ExpandCoeff(coeff,41)
 
+'''
+Coeff0 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
+Coeff1 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,1]))
+plt.imshow(np.real_if_close(coeff[10,:,:,0]))
+plt.colorbar()
+plt.show()
+'''
+
+plt.imshow(np.real_if_close(coeff[10,:,:,1]))
+plt.colorbar()
+plt.show()
+Coeff410 = np.fft.ifftn(coeff41[:,:,:,0])
+Coeff411 = np.fft.ifftn(coeff41[:,:,:,1])
+
+plt.imshow(np.real_if_close(Coeff410[20,:,:]))
+plt.colorbar()
+plt.show()
+
+
+                        
 startTime = time.time()
-strainCalc41 = np.real_if_close(MKS.NewResponse(coeff41, Macro, MSf41))
+strainCalc41 = np.real_if_close(MKS.NewResponse(coeff, Macro, MSf1))
 endTime = time.time()
 print endTime-startTime
 
@@ -49,7 +69,7 @@ plt.subplot(311)
 p1 = plt.imshow(strainCalc41[10,:,:])
 plt.colorbar()
 plt.subplot(312)
-p2 = plt.imshow(strain41[10,:,:])
+p2 = plt.imshow(strain1[10,:,:])
 plt.colorbar()
 plt.subplot(313)
 p3 = plt.imshow(MS41[10,:,:])
