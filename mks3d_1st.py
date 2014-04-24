@@ -28,7 +28,7 @@ def independent_columns(A, tol = 1e-05):
     #return A[:, independent]
     return independent
 
-def res_red(filename = "21_1_noah.dat", el = 21, slc = 10):
+def res_red(filename, el = 21, slc = 10):
     """
     This function reads the E11 values from a .dat file and reorganizes the
     data into a el x el x el array with the correct organization
@@ -203,11 +203,14 @@ if read_dat == 1:
     start = time.time()    
     
     #os.chdir("C:\mks_data\iso_2ph_5cont_dat")
-    filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_strain.dat"
-    filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_strain.dat"
+    filename1 = "deltaM_modeling/21deltaM_1surroundedBy2.dat"
+    filename2 = "deltaM_modeling/21deltaM_2surroundedBy1.dat"
     resp = np.zeros((el,el,el,ns))
-    resp[:,:,:,0] = res_red(filename1)
-    resp[:,:,:,1] = res_red(filename2)
+    resp[:,:,:,0] = MKS.ABstrains(filename1)
+    resp[:,:,:,1] = MKS.ABstrains(filename2)
+    #resp[:,:,:,0] = res_red(filename1)
+    #resp[:,:,:,1] = res_red(filename2)
+    print resp[:,:,:,1]
     #print "%s is loaded" %filename 
     
     #os.chdir("C:/Users/nhpnp3/Documents/GitHub/MKS_repository/MKS_2nd")
@@ -272,7 +275,9 @@ for k in xrange(el**3):
     if k % 500 == 0:
         print "frequency completed: %s" % k
     
-    specinfc[k, p] = np.linalg.solve(calred, resred)   
+    specinfc[k, p] = np.linalg.solve(calred, resred)
+
+#Rspecincfc = np.ndarray(
 
 end = time.time()
 timeE = np.round((end - start),3)
@@ -308,18 +313,20 @@ for k in xrange(el**3):
 
 print "The mean absolute strain error (MASE) is %s%%" %(MASE*100)
 
+'''
+print resp[:,:,:,-1]
 plt.imshow(resp[:,:,:,-1])
 plt.colorbar()
 plt.show()
 plt.imshow(mks_R)
 plt.colorbar()
 plt.show()
-
+'''
 
 ## VISUALIZATION OF MKS VS. FEM ###
 
 plt.close()
-#fig = plt.figure()
+# fig = plt.figure()
 
 ## pick a slice perpendicular to the x-direction
 slc = 10
@@ -377,29 +384,28 @@ plt.ylabel("Frequency")
 plt.title("Frequency comparison of FE and MKS")
 plt.show()
 
-#
-#del MM, PM, M, lin_M, specinfc, lin_sum, mks_F, m, micr, pm
-#del febp, fewp, mksbp, mkswp, ax
-#
-#plt.subplot(221)
-#ax = plt.imshow(micr[slice,:,:,0], origin='lower', interpolation='none',
-#    cmap='binary')
-#plt.colorbar(ax)
-#plt.title('Black delta microstructure')
-#
-#plt.subplot(222)
-#ax = plt.imshow(micr[slice,:,:,1], origin='lower', interpolation='none',
-#    cmap='binary')
-#plt.colorbar(ax)
-#plt.title('White delta microstructure')
-#
-#plt.subplot(223)
-#ax = plt.imshow(micr[slice,:,:,2], origin='lower', interpolation='none',
-#    cmap='binary')
-#plt.colorbar(ax)
-#plt.title('Validation microstructure')
-#
-#resp_fft_lin = np.reshape(resp_fft[:,:,:,-1],el**3).real
-#freq = range(el**3)
-#plt.plot(freq,resp_fft_lin,'b')
 
+del MM, PM, M, lin_M, specinfc, lin_sum, mks_F, m, micr,
+del febp, fewp, mksbp, mkswp, ax
+
+plt.subplot(221)
+ax = plt.imshow(micr[slice,:,:,0], origin='lower', interpolation='none',
+    cmap='binary')
+plt.colorbar(ax)
+plt.title('Black delta microstructure')
+
+plt.subplot(222)
+ax = plt.imshow(micr[slice,:,:,1], origin='lower', interpolation='none',
+    cmap='binary')
+plt.colorbar(ax)
+plt.title('White delta microstructure')
+
+plt.subplot(223)
+ax = plt.imshow(micr[slice,:,:,2], origin='lower', interpolation='none',
+    cmap='binary')
+plt.colorbar(ax)
+plt.title('Validation microstructure')
+
+resp_fft_lin = np.reshape(resp_fft[:,:,:,-1],el**3).real
+freq = range(el**3)
+plt.plot(freq,resp_fft_lin,'b')

@@ -170,8 +170,8 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	#for blah in range(17):
 	#	print micro_1_k[0,0,blah,0]
 	#	print micro_1_k[0,0,blah,1]
-	micro_1_k[:,:,:,1] = [x*1.5 for x in micro_1_k[:,:,:,1]]
-	micro_2_k[:,:,:,1] = [x*1.5 for x in micro_2_k[:,:,:,1]]
+	#micro_1_k[:,:,:,1] = [x*1.5 for x in micro_1_k[:,:,:,1]]
+	#micro_2_k[:,:,:,1] = [x*1.5 for x in micro_2_k[:,:,:,1]]
 	coeff = zeros( (dim_len,dim_len,dim_len,2) , dtype=complex)
 
 	#attempt to perform least squares solution
