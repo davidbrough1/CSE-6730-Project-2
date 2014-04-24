@@ -44,6 +44,7 @@ strainCalc41 = np.real_if_close(MKS.NewResponse(coeff41, Macro, MSf41))
 endTime = time.time()
 print endTime-startTime
 
+
 plt.subplot(311)
 p1 = plt.imshow(strainCalc41[10,:,:])
 plt.colorbar()
@@ -55,4 +56,11 @@ p3 = plt.imshow(MS41[10,:,:])
 plt.colorbar()
 plt.show()
 plt.close()
-   
+
+
+'''
+plt.imshow(strainCalc41[10,:,:])
+plt.show()
+plt.imshow(MS41[10,:,:])
+plt.show()
+'''
