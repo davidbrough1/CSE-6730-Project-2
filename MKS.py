@@ -41,8 +41,8 @@ def ABstrains(ABout):
 	integration_point_strains = zeros( (8,size(num_strains)) )
 	#1st dim = x, 2nd dim = y, 3rd dim = z
 	for i in range(0,num_elements):
-		z = i%dim_length
-		y = (i%layer_size)/dim_length
+		y = i%dim_length
+		z = (i%layer_size)/dim_length
 		x = i/layer_size
 		#average strains over the 8 integration points for c3d8
 		for k in range(0,8):
@@ -160,13 +160,30 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	return coeff
 
 #takes in conj of DFT coefficients, output new matrix with conj of DFT coefficients such that it is ready to use in the DFT space
+
+
+def ExpandCoeff(coeff, new_side_len):
+        coeff[:,:,:,0] = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
+        coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis = 0)
+        coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis = 1)
+        coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis = 2)
+        new_coeff = np.ndarray(shape = (new_side_len,new_side_len,new_side_len,coeff.shape[3]),dtype = 'complex128')
+        new_coeff[0:21,0:21,0:21,0]=coeff[:,:,:,0]
+        new_coeff[0,0,0,1]=coeff[0,0,0,1]*coeff.shape[0]**3/new_coeff.shape[0]**3
+        print coeff[1,1,1,1]
+        print coeff[0,0,0,1]
+        new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
+        return new_coeff
+        
+
+'''
 def ExpandCoeff(coeff, new_side_len):
 	old_side_len = coeff.shape[0]
 	if(old_side_len > new_side_len):
 		return coeff
 		
 	#perform complex conjugate
-	#coeff = np.conj(coeff)
+	coeff = np.conj(coeff)
 	#coefficients to the spatial format instead of DFT
 	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
 	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
@@ -188,9 +205,10 @@ def ExpandCoeff(coeff, new_side_len):
 	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
 	new_coeff[:,:,:,1] = np.fft.fftn(new_coeff[:,:,:,1])
 	#perform complex conjugate
-	#new_coeff = np.conj(new_coeff)
+	new_coeff = np.conj(new_coeff)
 	
 	return new_coeff
+'''
 
 #solves for new response given inputs
 #macro is the imposed macro strain, coeff are the conj DFT coefficients, MSf is the microstructure function
@@ -204,6 +222,7 @@ def NewResponse(coeff, macro, MSf):
 	
 	response = lin_sum = np.sum(np.conjugate(coeff) * MSf_DFT[:,:,:,:], 3)
 	response = np.fft.ifftn(response)
+	
 	return np.real_if_close(response)
 
 
