@@ -11,15 +11,16 @@ import time
 MSf1 = MKS.GenDelta(21,False);
 MSf2 = MKS.GenDelta(21,True);
 
-filename1 = "deltaM_modeling/21_1_noah2.dat"
-filename2 = "deltaM_modeling/21_2_noah2.dat"
-#filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_strain.dat"
-#filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_strain.dat"
-filenamePredict = "outputModeling/41_2phase.dat"
+#filename1 = "deltaM_modeling/21_1_noah2.dat"
+#filename2 = "deltaM_modeling/21_2_noah2.dat"
+filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_smallerstrain.dat"
+filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_smallerstrain.dat"
+filenamePredict = "outputModeling/21_2phase_smallerstrain.dat"
 
-f = open("outputModeling/41_2phase.inp.microstructure")
+f = open("outputModeling/21_2phase_smallerstrain.inp.microstructure")
 
 MS41 = pk.load(f)
+MS41[MS41 <= 0] = 1
 
 f.close()
 
@@ -43,7 +44,7 @@ plt.imshow(np.real_if_close(np.fft.ifftn(coeff[10,:,:,0])))
 plt.colorbar()
 plt.show()
 '''
-
+'''
 Coeff0 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
 Coeff0 = np.roll(Coeff0,10,axis = 0)
 Coeff0 = np.roll(Coeff0,10,axis = 1)
@@ -64,9 +65,10 @@ plt.imshow(np.real_if_close(Coeff0[10,:,:]-Coeff410[10,0:21,0:21]))
 plt.colorbar()
 plt.title('Difference between 2 above')
 plt.show()
+'''
                         
 startTime = time.time()
-strainCalc41 = np.real_if_close(MKS.NewResponse(coeff41, Macro, MSf41))
+strainCalc41 = np.real_if_close(MKS.NewResponse(coeff, Macro, MSf41))
 endTime = time.time()
 print endTime-startTime
 
