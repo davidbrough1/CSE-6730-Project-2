@@ -11,10 +11,10 @@ import time
 MSf1 = MKS.GenDelta(21,False);
 MSf2 = MKS.GenDelta(21,True);
 
-filename1 = "deltaM_modeling/21_1_noah2.dat"
-filename2 = "deltaM_modeling/21_2_noah2.dat"
-#filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_strain.dat"
-#filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_strain.dat"
+#filename1 = "deltaM_modeling/21_1_noah2.dat"
+#filename2 = "deltaM_modeling/21_2_noah2.dat"
+filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_strain.dat"
+filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_strain.dat"
 filenamePredict = "outputModeling/41_2phase.dat"
 
 f = open("outputModeling/41_2phase.inp.microstructure")
