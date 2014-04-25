@@ -226,7 +226,7 @@ def plot_predict(dataset,params,ARorder,diffOrder,exoOrder,exoDelay):
     if diffOrder > 0:
         iy = dfIntegrate(yp,ICy)
     #Print standard error of the prediction
-    print "Standard Error of"+columnName
+    print "Standard Error of "+columnName
     print (sp.var(np.nan_to_num(iy.values-yt.values)))**(0.5)
     print ' '
     #generate plots
