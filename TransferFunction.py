@@ -74,8 +74,8 @@ def TFmodelAnalysis(data,model,ARorder,diffOrder,exoOrder,exoDelay):
     This function takes the data, the calibrated model, and the order of that model
     and provides plots and statistics that help to evaluate the qaulity of the model
     '''
-    coefAnalysis(model)
-    residPlots(model.resid)
+    #coefAnalysis(model)
+    #residPlots(model.resid)
     plot_fitted(data,model.params,ARorder,diffOrder,exoOrder,exoDelay)
 
 def coefAnalysis(model):
@@ -179,13 +179,17 @@ def plot_fitted(data,params,ARorder,diffOrder,exoOrder,exoDelay):
     print (sp.var(np.nan_to_num(iy.values-yt.values)))**(0.5)
     print ' '
     plt.subplot(211)
+    plt.title('Driven Damped Harmonic Oscillator',fontsize = 30)
     plt.plot(time.values,iy.values, label = columnName)
     plt.plot(time.values,yt.values, label = names[1])
+    plt.ylabel('Position')
+    plt.xlabel('Time')
     plt.legend()
-    #plt.show()
     plt.subplot(212)
     plt.plot(time.values,(yt.values-iy.values),label = 'Calibration Error')
     plt.legend()
+    plt.ylabel('Difference in Position')
+    plt.xlabel('Time')
     plt.show()
 
 def plot_predict(dataset,params,ARorder,diffOrder,exoOrder,exoDelay):
@@ -227,13 +231,18 @@ def plot_predict(dataset,params,ARorder,diffOrder,exoOrder,exoDelay):
     print ' '
     #generate plots
     plt.subplot(211)
+    plt.title('Driven Damped Harmonic Oscillator',fontsize = 30)
     plt.plot(time.values,iy.values, label = columnName)
     plt.plot(time.values,yt.values, label = names[1])
     plt.legend()
+    plt.ylabel('Position')
+    plt.xlabel('Time')
     #plt.show()
     plt.subplot(212)
     plt.plot(time.values,(yt.values-iy.values), label = 'Prediction Error')
     plt.legend()
+    plt.ylabel('Difference in Position')
+    plt.xlabel('Time')
     plt.show()
 
 def yt_predict(dataset,params,ARorder,diffOrder,exoOrder,exoDelay):
