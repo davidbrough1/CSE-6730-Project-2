@@ -13,6 +13,7 @@ MSf2 = MKS.GenDelta(21,True);
 
 #filename1 = "deltaM_modeling/21_1_noah2.dat"
 #filename2 = "deltaM_modeling/21_2_noah2.dat"
+
 filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_smallerstrain.dat"
 filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_smallerstrain.dat"
 filenamePredict = "outputModeling/21_2phase_smallerstrain.dat"
@@ -49,7 +50,7 @@ Coeff0 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
 Coeff0 = np.roll(Coeff0,10,axis = 0)
 Coeff0 = np.roll(Coeff0,10,axis = 1)
 Coeff0 = np.roll(Coeff0,10,axis = 2)
-coeff41 = MKS.ExpandCoeff(coeff,41)
+coeff41 = MKS.ExpandCoeff(coeff,MSf41.shape[0])
 plt.subplot(311)     
 plt.imshow(np.real_if_close(Coeff0[10,:,:]))
 plt.colorbar()
