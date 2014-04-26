@@ -170,8 +170,6 @@ def ExpandCoeff(coeff, new_side_len):
         new_coeff = np.ndarray(shape = (new_side_len,new_side_len,new_side_len,coeff.shape[3]),dtype = 'complex128')
         new_coeff[0:21,0:21,0:21,0]=coeff[:,:,:,0]
         new_coeff[0,0,0,1]=coeff[0,0,0,1]*coeff.shape[0]**3/new_coeff.shape[0]**3
-        print coeff[1,1,1,1]
-        print coeff[0,0,0,1]
         new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
         return new_coeff
         
