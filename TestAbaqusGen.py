@@ -29,13 +29,13 @@ def generateDeltaM(sideLen, viscoelastic=False):
     if (viscoelastic):
         generateAbaqusInp('{}deltaM_1surroundedBy2_viscoelastic.inp'.format(sideLen), deltaM_1surroundedBy2, True)
     else:
-        generateAbaqusInp('{}deltaM_1surroundedBy2.inp'.format(sideLen), deltaM_1surroundedBy2,True)
+        generateAbaqusInp('{}deltaM_1surroundedBy2_strain.inp'.format(sideLen), deltaM_1surroundedBy2)
     deltaM_2surroundedBy1 = sp.ones((sideLen, sideLen, sideLen))
     deltaM_2surroundedBy1[middle, middle, middle] = 2
     if (viscoelastic):
         generateAbaqusInp('{}deltaM_2surroundedBy1_viscoelastic.inp'.format(sideLen), deltaM_2surroundedBy1, True)
     else:
-        generateAbaqusInp('{}deltaM_2surroundedBy1.inp'.format(sideLen), deltaM_1surroundedBy2)
+        generateAbaqusInp('{}deltaM_2surroundedBy1_strain.inp'.format(sideLen), deltaM_1surroundedBy2)
     
 generateDeltaM(17)
 generateDeltaM(21)
