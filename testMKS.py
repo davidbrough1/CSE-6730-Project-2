@@ -2,6 +2,8 @@ import MKS
 reload(MKS)
 import matplotlib.pylab as plt
 import numpy as np
+import Plot
+reload(Plot)
 
 #print MKS.GenDelta(5,False)
 
@@ -24,6 +26,11 @@ stress2 = MKS.ABstrains(filename2)
 Macro = .02
 
 coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
+
+Plot.plotCoeff(coeff)
+Plot.compareCoeff(coeff)
+
+'''
 
 stressCalc1 = MKS.NewResponse(coeff, .02, MSf1)
 stressCalc1 = np.real_if_close(stressCalc1)
@@ -64,3 +71,4 @@ plt.imshow(stress2[11,:,:]-stressCalc2[11,:,:])
 plt.title('Error')
 plt.colorbar()
 plt.show()
+'''
