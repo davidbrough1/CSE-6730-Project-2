@@ -9,14 +9,13 @@ from AbaqusGen import getIndices
 
 ms = MS(sp.rand(31,31,31),2,1,1,1,1)
 
-generateAbaqusInp('23_2phase.inp', MS(sp.rand(23,23,23),2,1,1,1,1))
-generateAbaqusInp('21_2phase.inp', MS(sp.rand(21,21,21),2,1,1,1,1))
-generateAbaqusInp('17_2phase.inp', MS(sp.rand(17,17,17),2,1,1,1,1))
+generateAbaqusInp('23_2phase_strain.inp', MS(sp.rand(23,23,23),2,1,1,1,1))
+generateAbaqusInp('17_2phase_strain.inp', MS(sp.rand(17,17,17),2,1,1,1,1))
+generateAbaqusInp('19_2phase_strain.inp', MS(sp.rand(19,19,19),2,1,1,1,1))
 
 #generateAbaqusInp('81_2phase.inp', MS(sp.rand(81,81,81),2,1,1,1,1))
 
 generateAbaqusInp('21_2phase_strain.inp', MS(sp.rand(21,21,21),2,1,1,1,1))
-generateAbaqusInp('41_2phase_strain.inp', MS(sp.rand(41,41,41),2,1,1,1,1))
 generateAbaqusInp('42_2phase_strain.inp', MS(sp.rand(42,42,42),2,1,1,1,1))
 generateAbaqusInp('63_2phase.inp', MS(sp.rand(63,63,63),2,1,1,1,1))
 
@@ -38,6 +37,7 @@ def generateDeltaM(sideLen, viscoelastic=False):
         generateAbaqusInp('{}deltaM_2surroundedBy1_strain.inp'.format(sideLen), deltaM_1surroundedBy2)
     
 generateDeltaM(17)
+generateDeltaM(19)
 generateDeltaM(21)
 generateDeltaM(23)
 
