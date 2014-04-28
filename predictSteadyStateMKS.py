@@ -22,6 +22,7 @@ f = open("outputModeling/21_2phase_smallerstrain.inp.microstructure")
 MS41 = pk.load(f)
 MS41[MS41 <1] = 1
 
+
 f.close()
 
 strain1 = MKS.ABstrains(filename1)
@@ -40,6 +41,13 @@ Macro = .02
 coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
 
 
+'''
+plt.imshow(np.real_if_close(np.fft.ifftn(coeff[10,:,:,0])))
+plt.colorbar()
+plt.show()
+'''
+'''
+>>>>>>> bd54c19f471215aa049e0836b44e2aece6ed94ea
 Coeff0 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
 Coeff0 = np.roll(Coeff0,10,axis = 0)
 Coeff0 = np.roll(Coeff0,10,axis = 1)
@@ -60,8 +68,11 @@ plt.imshow(np.real_if_close(Coeff0[10,:,:]-Coeff410[10,0:21,0:21]))
 plt.colorbar()
 plt.title('Difference between 2 above')
 plt.show()
+<<<<<<< HEAD
 
 coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
+
+'''
 
                         
 startTime = time.time()
