@@ -67,35 +67,14 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	micro_1_k = zeros(MicroSF_1.shape,dtype=complex)
 	micro_1_k[:,:,:,0] = np.fft.fftn(MicroSF_1[:,:,:,0])
 	micro_1_k[:,:,:,1] = np.fft.fftn(MicroSF_1[:,:,:,1])
-	#print (micro_1_k[0,0,0,0]+micro_1_k[0,0,0,1])
+	
 	response_2_k = np.fft.fftn(strains_2)
 	micro_2_k = zeros(MicroSF_2.shape,dtype=complex)
 	micro_2_k[:,:,:,0] = np.fft.fftn(MicroSF_2[:,:,:,0])
 	micro_2_k[:,:,:,1] = np.fft.fftn(MicroSF_2[:,:,:,1])
-	#print (micro_2_k[0,0,0,0]+micro_2_k[0,0,0,1])
-	
-	#divide responses by inputs to begin calculating coefficients
-	#response_1_k[:,:,:] = [x/Macro for x in response_1_k] 
-	#response_2_k[:,:,:] = [x/Macro for x in response_2_k] 
-	
+
 	#explicitly invert matrix and solve for coefficients
 	dim_len = response_1_k.shape[0]
-	#coeff = zeros( (dim_len,dim_len,dim_len, 2) , dtype=complex)
-	#det = zeros( (dim_len,dim_len,dim_len), dtype=complex )
-	#det[:,:,:] = ( micro_1_k[:,:,:,0]*micro_2_k[:,:,:,1] - micro_2_k[:,:,:,0]*micro_1_k[:,:,:,1])
-	#print det
-	#coeff[:,:,:,0] = ( response_1_k*micro_2_k[:,:,:,1] - response_2_k*micro_1_k[:,:,:,1] )/det
-	#coeff[:,:,:,1] = ( response_2_k*micro_1_k[:,:,:,0] - response_1_k*micro_2_k[:,:,:,0] )/det
-	
-	#attempt to track error
-	#errorLocs = np.where(det == 0)
-	#print errorLocs[0][2]
-	#print errorLocs[1][2]
-	#print errorLocs[2][2]
-	
-	#for blah in range(17):
-	#	print micro_1_k[0,0,blah,0]
-	#	print micro_1_k[0,0,blah,1]
 		
 	coeff = zeros( (dim_len,dim_len,dim_len,2) , dtype=complex)
 
@@ -103,31 +82,6 @@ def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):
 	for i in range(dim_len):
 		for j in range(dim_len):
 			for k in range(dim_len):
-# 				if(i==0 and k==0 and j==0):
-# 					break
-# 				x1 = micro_1_k[i,j,k,0] 
-# 				x2 = micro_2_k[i,j,k,0]
-# 				y1 = response_1_k[i,j,k]
-# 				y2 = response_2_k[i,j,k]
-# 				y_vec = zeros((2,1), dtype=complex)
-# 				y_vec[0] = y1
-# 				y_vec[1] = y2
-# 				trans_inv = zeros((2,2), dtype=complex)
-# 				trans_inv[0,0] = x1**2+x2**2
-# 				trans_inv[0,1] = -x1-x2
-# 				trans_inv[1,0] = -x1-x2
-# 				trans_inv[1,1] = 2
-# 				det = (x1**2-2*x1*x2+x2**2)
-# 				trans_inv[:,:] = [x/det for x in trans_inv] 
-# 				x_trans = zeros((2,2), dtype=complex)
-# 				x_trans[0,0] = 1
-# 				x_trans[0,1] = 1
-# 				x_trans[1,0] = x1
-# 				x_trans[1,1] = x2
-# 				crap = np.dot(trans_inv,x_trans)
-# 				temp = np.dot(crap,y_vec)
-# 				arg = temp[1]
-# 				coeff[i,j,k] = arg[0]
 	
 				#u,v,w = i,j,k
 				#The following 2 quantities are used in the normal equation during regression.
@@ -170,45 +124,9 @@ def ExpandCoeff(coeff, new_side_len):
         new_coeff = np.ndarray(shape = (new_side_len,new_side_len,new_side_len,coeff.shape[3]),dtype = 'complex128')
         new_coeff[0:21,0:21,0:21,0]=coeff[:,:,:,0]
         new_coeff[0,0,0,1]=coeff[0,0,0,1]*coeff.shape[0]**3/new_coeff.shape[0]**3
-        print coeff[1,1,1,1]
-        print coeff[0,0,0,1]
         new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
         return new_coeff
-        
 
-'''
-def ExpandCoeff(coeff, new_side_len):
-	old_side_len = coeff.shape[0]
-	if(old_side_len > new_side_len):
-		return coeff
-		
-	#perform complex conjugate
-	coeff = np.conj(coeff)
-	#coefficients to the spatial format instead of DFT
-	coeff[:,:,:,0] = np.fft.ifftn(coeff[:,:,:,0])
-	coeff[:,:,:,1] = np.fft.ifftn(coeff[:,:,:,1])
-	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =0)
-	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =1)
-	coeff[:,:,:,0] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =2)
-	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =0)
-	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =1)
-	coeff[:,:,:,1] = np.roll(coeff[:,:,:,0],coeff.shape[0]/2,axis =2)
-	
-	
-	#both old side length and new should be odd so centering is easy
-	new_coeff = zeros((new_side_len,new_side_len,new_side_len,2))
-	offset = (new_side_len-old_side_len)/2
-	last_position = offset+old_side_len
-	new_coeff[offset:last_position,offset:last_position,offset:last_position,:] = coeff
-	
-	#convert coeff to DFT space
-	new_coeff[:,:,:,0] = np.fft.fftn(new_coeff[:,:,:,0])
-	new_coeff[:,:,:,1] = np.fft.fftn(new_coeff[:,:,:,1])
-	#perform complex conjugate
-	new_coeff = np.conj(new_coeff)
-	
-	return new_coeff
-'''
 
 #solves for new response given inputs
 #macro is the imposed macro strain, coeff are the conj DFT coefficients, MSf is the microstructure function

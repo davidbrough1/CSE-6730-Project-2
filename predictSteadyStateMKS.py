@@ -13,13 +13,14 @@ MSf2 = MKS.GenDelta(21,True);
 
 #filename1 = "deltaM_modeling/21_1_noah2.dat"
 #filename2 = "deltaM_modeling/21_2_noah2.dat"
-filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_strain.dat"
-filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_strain.dat"
-filenamePredict = "outputModeling/42_2phase_strain.dat"
+filename1 = "deltaM_modeling/21deltaM_1surroundedBy2_smallerstrain.dat"
+filename2 = "deltaM_modeling/21deltaM_2surroundedBy1_smallerstrain.dat"
+filenamePredict = "outputModeling/21_2phase_smallerstrain.dat"
 
-f = open("outputModeling/42_2phase_strain.inp.microstructure")
+f = open("outputModeling/21_2phase_smallerstrain.inp.microstructure")
 
 MS41 = pk.load(f)
+MS41[MS41 <1] = 1
 
 f.close()
 
@@ -38,11 +39,6 @@ Macro = .02
 
 coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
 
-'''
-plt.imshow(np.real_if_close(np.fft.ifftn(coeff[10,:,:,0])))
-plt.colorbar()
-plt.show()
-'''
 
 Coeff0 = np.real_if_close(np.fft.ifftn(coeff[:,:,:,0]))
 Coeff0 = np.roll(Coeff0,10,axis = 0)
@@ -64,11 +60,14 @@ plt.imshow(np.real_if_close(Coeff0[10,:,:]-Coeff410[10,0:21,0:21]))
 plt.colorbar()
 plt.title('Difference between 2 above')
 plt.show()
+
+coeff = MKS.GenC(MSf1, MSf2, filename1, filename2, Macro)
+
                         
 startTime = time.time()
-strainCalc41 = np.real_if_close(MKS.NewResponse(coeff41, Macro, MSf41))
+strainCalc41 = np.real_if_close(MKS.NewResponse(coeff, Macro, MSf41))
 endTime = time.time()
-print endTime-startTime
+#print endTime-startTime
 
 plt.subplot(311)
 p1 = plt.imshow(strainCalc41[10,:,:])
@@ -85,12 +84,3 @@ plt.show()
 plt.title('Microstructure')
 plt.close()
 
-
-
-
-'''
-plt.imshow(strainCalc41[10,:,:])
-plt.show()
-plt.imshow(MS41[10,:,:])
-plt.show()
-'''
