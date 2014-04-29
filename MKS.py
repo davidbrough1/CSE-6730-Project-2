@@ -1,4 +1,5 @@
 import numpy as np
+import re
 from numpy import *
 import matplotlib.pylab as plt
 
@@ -24,21 +25,107 @@ def ABstrains(ABout):
 	#get number of elements to loop through
 	num_elements = int((cur_line.split())[4])
 
-
-	#find start of element data
-	while(cur_line != "" and "THE FOLLOWING TABLE IS PRINTED FOR ALL ELEMENTS "\
-		  "WITH TYPE C3D8 AT THE INTEGRATION POINTS" not in cur_line):
+	currentStep = 1
+	keepProcessing = True
+	strains = None
+      # determine if this is a static or visco analysis
+	visco = False
+	searchStaticOrVisco = "S T E P       {}     (S T A T I C   A N A L Y S I S|V I S C O   A N A L Y S I S)".format(currentStep)
+	m = re.search(searchStaticOrVisco, cur_line)
+	while(cur_line != "" and not m):
 		cur_line = f.readline()
-	for i in range(0,5):
-		cur_line = f.readline()
+		m = re.search(searchStaticOrVisco, cur_line)	
 	
+	if (cur_line == ""):
+		return None
+      
+	if m.group(1) == "V I S C O   A N A L Y S I S":
+		visco = True
+	
+	while (keepProcessing):
+		# Read strains for the next step, for static analysis, there should be only one
+		stepStrains = ReadStrainsStep(currentStep, f, num_elements, visco)
+		if (stepStrains == None):
+			keepProcessing = False
+		else:
+			if strains == None:
+				strains = stepStrains
+			else:
+				strains = np.concatenate((strains, stepStrains), axis=3)
+		currentStep = currentStep + 1
+	return strains
+
+def ReadStrainsStep(currentStep, f, num_elements, visco = False):
+	
+	cur_line = f.readline()
+	
+	# get time increments and time period for step if visco
+	timeIncrement = 0
+	timePeriod = 0
+	numberOfTimeSteps = 1
+	if visco:
+		while(cur_line != "" and "TIME INCREMENT IS" not in cur_line):
+			cur_line = f.readline()
+		if cur_line == "":
+			return None
+		timeIncrement = float((cur_line.split())[3])
+		while(cur_line != "" and "TIME PERIOD IS" not in cur_line):
+			cur_line = f.readline()
+		timePeriod = float((cur_line.split())[3])
+		numberOfTimeSteps = timePeriod/timeIncrement
+		
+	currentTimeStep = 0						
+
 	#create storage of element values, only strain in 11 direction currently
 	#numStrains are the numeric values for 11, 22, 33, 12, 13, 23 strains
 	#                         respectively  0,  1, 2 , 3,  4,  5
 	num_strains = range(0,1)
 	dim_length = ceil(num_elements ** (1/3.0))
+	if visco:
+		strains = zeros( (dim_length,dim_length,dim_length,numberOfTimeSteps,size(num_strains)) )
+	else:
+		strains = zeros( (dim_length,dim_length,dim_length,size(num_strains)) )		
+	
+	# read strains for the next timestep, if static only one timestep to read
+	if (visco):		
+		continueReading = True
+		while (continueReading):
+			continueReading = ReadStrainsTimestep(currentStep, currentTimeStep, f, num_elements, strains, True)
+			currentTimeStep = currentTimeStep + 1
+	else:
+		continueReading = ReadStrainsTimestep(currentStep, currentTimeStep, f, num_elements, strains)
+		if (not continueReading):
+			return None
+	
+	# for single strain case reshape strains to only 3d array, will need to be changed for time rate to be nxnxnxt in this case 
+	# Including time for the visco state
+	if (visco):
+		strains = strains[:, :, :, :, 0]
+	else:
+		strains = strains[:, :, :, 0]
+		
+	return strains
+
+def ReadStrainsTimestep(currentStep, timestep, f, num_elements, strains, visco=False):
+	searchStaticOrVisco = "S T E P       {}     (S T A T I C   A N A L Y S I S|V I S C O   A N A L Y S I S)".format(currentStep + 1)
+	
+	num_strains = range(0,1)
+	dim_length = ceil(num_elements ** (1/3.0))
 	layer_size = dim_length ** 2
-	strains = zeros( (dim_length,dim_length,dim_length,size(num_strains)) )
+	
+	cur_line = f.readline()
+	
+	#find start of element data
+	while(cur_line != "" and "THE FOLLOWING TABLE IS PRINTED FOR ALL ELEMENTS "\
+		  "WITH TYPE C3D8 AT THE INTEGRATION POINTS" not in cur_line):
+		cur_line = f.readline()
+		# reach end of file or the next step in the analysis
+		if cur_line == "" or re.search(searchStaticOrVisco, cur_line):
+			return False
+	
+	for i in range(0,5):
+		cur_line = f.readline()
+		
 	integration_point_strains = zeros( (8,size(num_strains)) )
 	#1st dim = x, 2nd dim = y, 3rd dim = z
 	for i in range(0,num_elements):
@@ -51,11 +138,12 @@ def ABstrains(ABout):
 			for j in num_strains:
 				integration_point_strains[k,j] = float(split_str[2+j])
 			cur_line = f.readline()
-		strains[x,y,z,:] = integration_point_strains.mean(axis=0)
-
-	#for single strain case reshape strains to only 3d array, will need to be changed for time rate to be nxnxnxt in this case 
-	strains = strains[:,:,:,0]
-	return strains
+		if (visco):
+			strains[x,y,z,timestep,:] = integration_point_strains.mean(axis=0)
+		else:
+			strains[x,y,z,:] = integration_point_strains.mean(axis=0)
+	return True
+	
 	
 #MicroSF are the Microstructure functions, ABout are the ABAQUS output file names, Macro is the imposed macro strain in the 11 direction
 def GenC(MicroSF_1, MicroSF_2, ABout1, ABout2, Macro):

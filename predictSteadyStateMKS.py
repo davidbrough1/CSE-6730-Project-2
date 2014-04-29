@@ -64,6 +64,7 @@ if MSpredict.shape[0] > coeff.shape[0]:
 startTime = time.time()
 strainCalcpredict = np.real_if_close(MKS.NewResponse(coeff, Macro, MSfpredict))
 endTime = time.time()
+
 print 'Time to compute new response',(endTime-startTime),'secs'
 
 plt.subplot(211)
@@ -86,6 +87,4 @@ p3 = plt.imshow(((strainCalcpredict[n,:,:]/np.mean(strainCalcpredict))-strainpre
 plt.title('Error between FEM and MKS')
 plt.colorbar()
 plt.show()
-
-print 
 
